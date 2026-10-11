@@ -54,34 +54,58 @@ Solid arrows represent the intended ingestion flow. Dotted arrows represent futu
 
 See [Relationship-building system](docs/relationship-building.md) for the detailed relationship rules and requirements gap analysis.
 
-## Current implementation status
+## Project Status and Roadmap
 
-The repository contains the canonical record contract, deterministic extraction, GitHub/Jira/Slack source components, an ingestion runner, a Neo4j writer and schema, fixtures, and tests.
+Engineering Memory is being developed in stages. The following separates existing implementation from behavior that still needs verification and capabilities planned for later.
 
-| Capability | Status |
-|---|---|
-| Canonical records and provenance | Implemented; unit tests passed |
-| Deterministic extraction | Implemented; unit tests passed |
-| Fixture-backed source components | Present; unit tests passed |
-| Bounded ingestion and cursor handling | Implemented; unit tests passed |
-| Neo4j graph persistence | Implemented in code; live integration result must be verified |
-| Full commit-to-PR-to-issue-to-discussion evidence chain | Requires end-to-end verification |
-| Evidence-backed natural-language answers | Not implemented in the current ingestion scope |
-| Supersession detection and reasoning | Not demonstrated by the current implementation |
+### 1. Built
 
-The current unit-test baseline was **32 passing tests**. This does not establish that live Neo4j integration tests pass or that every acceptance criterion is satisfied.
+- Versioned canonical records with source identity and provenance.
+- Deterministic extraction of source-grounded values and explicit references.
+- GitHub, Jira, and Slack source components.
+- An ingestion runner with bounded processing, cursor handling, and run summaries.
+- Neo4j persistence code and schema constraints.
+- Unit tests: 32 tests passed in the reported run.
 
-The product specification in `SPEC.md` is a draft. Its acceptance criteria should be verified before declaring the ingestion slice complete.
+### 2. Being Verified
 
-## Getting started
+- Real Neo4j integration and graph persistence.
+- Idempotent replay against a disposable Neo4j database.
+- The complete commit → pull request → issue → discussion evidence chain.
+- Relationship direction, stub promotion, and preservation of existing graph links.
+- All acceptance criteria in `SPEC.md`.
 
-Use Python from the `ingestion` directory.
+### 3. Planned
 
-Run unit tests:
+- Retrieve relevant graph paths for natural-language "why" questions.
+- Generate answers grounded in source evidence, with traceable citations.
+- Represent decision history and detect when later decisions supersede earlier ones.
+- Handle missing or conflicting evidence and avoid unsupported answers.
+- Consider semantic extraction only after its policy and evidence requirements are approved.
 
-```bash
-python -m unittest discover -s tests/unit -v
+These stages describe the current development picture, not a claim that the entire product is complete. The product specification in `SPEC.md` remains a draft.
+
+## Roadmap
+
+```mermaid
+flowchart TD
+    A["Source adapters"] --> B["Canonical records"]
+    B --> C["Deterministic extraction"]
+    C --> D["Neo4j graph ingestion"]
+    D --> E["Verify graph and replay"]
+    E --> F["Evidence retrieval"]
+    F --> G["Why-question answers"]
+
+    style A fill:#dbeafe,stroke:#2563eb,color:#111827
+    style B fill:#dbeafe,stroke:#2563eb,color:#111827
+    style C fill:#dbeafe,stroke:#2563eb,color:#111827
+    style D fill:#dbeafe,stroke:#2563eb,color:#111827
+    style E fill:#fef3c7,stroke:#d97706,color:#111827
+    style F fill:#ede9fe,stroke:#7c3aed,color:#111827
+    style G fill:#ede9fe,stroke:#7c3aed,color:#111827
 ```
+
+The first four stages represent the ingestion foundation. Graph verification is the next validation milestone; evidence retrieval and "why" answers are future product capabilities.
 
 ### Neo4j integration tests
 
