@@ -1,6 +1,9 @@
 digraph genesis {
   rankdir=LR;
   node [shape=box,fontname="system-ui"];
+  "file:agent/investigator.py" [label="agent/investigator.py",class="file"];
+  "file:agent/mock_graph.py" [label="agent/mock_graph.py",class="file"];
+  "file:agent/prompts.py" [label="agent/prompts.py",class="file"];
   "file:ingestion/src/engineering_memory_ingestion/contracts/__init__.py" [label="ingestion/src/engineering_memory_ingestion/contracts/__init__.py",class="file"];
   "file:ingestion/src/engineering_memory_ingestion/contracts/records.py" [label="ingestion/src/engineering_memory_ingestion/contracts/records.py",class="file"];
   "file:ingestion/src/engineering_memory_ingestion/contracts/versions.py" [label="ingestion/src/engineering_memory_ingestion/contracts/versions.py",class="file"];

@@ -1,14 +1,44 @@
 {
   "schemaVersion": 2,
   "project": "hackfront",
-  "revision": "096d7e797eeab26e608b56071faf2ea177ac61cf",
-  "sourceHash": "fb71e2f0e75dbe858ca620a4c9c302c54279e4bbd89bbadd2be0d1035745ba6b",
+  "revision": "0537345c1f23893d2290f5de8101feefe2c6a860",
+  "sourceHash": "e10552d6a7c879d208922ed2105b644a075e4383b00883cfe70d63c6d9f0eb61",
   "provenance": {
     "tool": "genesis-graphizer",
     "method": "static-analysis",
     "confidenceScale": "0..1"
   },
   "nodes": [
+    {
+      "id": "file:agent/investigator.py",
+      "type": "file",
+      "label": "agent/investigator.py",
+      "path": "agent/investigator.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "6b5553181e37662da58c7b917eb9c856a1b70f5948e27759b4f881316e905129"
+    },
+    {
+      "id": "file:agent/mock_graph.py",
+      "type": "file",
+      "label": "agent/mock_graph.py",
+      "path": "agent/mock_graph.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "6eae57755a05b1e0e8463be8dbb9a5baf524459b75609e60cb4a5186ea4778ce"
+    },
+    {
+      "id": "file:agent/prompts.py",
+      "type": "file",
+      "label": "agent/prompts.py",
+      "path": "agent/prompts.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "4edbe959e3cecc5012e7d333c6181a3c3ba4d55f8aa731115104f4a4afc2008f"
+    },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/contracts/__init__.py",
       "type": "file",
@@ -17,7 +47,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "d119dd2dd3475e12ee0b53316b39e15e522a6eb0e64b0398295afbfb6a1314f2"
+      "contentHash": "77e5b3e42547c19a8000528617c3e64e504d8f9f9916c3ab1990a2d9b245395a"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/contracts/records.py",
@@ -27,7 +57,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "5e202305f5cbfbe7c702c92258083c4f052d774c0b82469dd79386626f63effc"
+      "contentHash": "dd47439d8e75ad877f8ae3b246025ed4368018f0c961a8a8754293b2179974e2"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/contracts/versions.py",
@@ -37,7 +67,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "ee7e7a39d3f324ccea3fec7748f44a3e8f2d2ea59efc2cd745936b9000f7e1c7"
+      "contentHash": "8656345bd9c7c6305e12b268f77e49f94274272ab22f97a1cbb55c022dd8c687"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/core/__init__.py",
@@ -47,7 +77,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "898c411bdbd549a6e33ea259524a2dac617f5cbc346a1b61a9bdad8bfa332db0"
+      "contentHash": "750b62ff5798e474fa05080b062fd705b1d83849db3c3d672f2c427a16e57021"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/core/runner.py",
@@ -57,7 +87,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "e2787e2863be67bbb9c6d80106bcbb228445b3fdd7dae50b1bccec9500e105b3"
+      "contentHash": "81438e9d547cdb6814cc8c089eaf93211e899c01be4fba06ec400bd655239be3"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/extraction/__init__.py",
@@ -67,7 +97,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "8067219b5f3d25776e82744c26630dfdae8bc2435eb66196a3ad612ab2c1a692"
+      "contentHash": "eb94a4938232060d2684d508eb2435949925fc0faa5321e5a2b1448dbfea82e6"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/extraction/deterministic.py",
@@ -77,7 +107,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "fe138bfabb550f6f099b492b5eb94f6e835ae74cb538d7a40a0066dd41665192"
+      "contentHash": "bb493c337a8bbe6f30c4b0397757152a0fe0f918d0295e31fdb15b0b656b5cf7"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/observability/__init__.py",
@@ -87,7 +117,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "baafb502736ed2d22aa451c3157125d914c8058569d5858b0a087cc72a572c42"
+      "contentHash": "3f48b704e93547fb41df2ee9670bf416efa4de7455c7e1f3706b071aa46820e7"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/observability/run_summary.py",
@@ -97,7 +127,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "3cb956426b860edd66cd88b11c816cd3080d1e9230e72c9abeef13f6935ca145"
+      "contentHash": "f2c016973d56cef48dd9fb853400622271aa8eeb73e09eb093508dbf442326c2"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/sources/github/__init__.py",
@@ -107,7 +137,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "2423fe6872d0a3f4047af4718bbb4682c228f029dc494400ac4df399ae1411bd"
+      "contentHash": "76380a3b2b2bcfbc3ad98f54c8316cfed144c2d226c7638b534be5c50ab53482"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/sources/github/adapter.py",
@@ -117,7 +147,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "b9c88304722ec3f4cb35997206501a95ade437556ec6e2459804389824657463"
+      "contentHash": "7355c61882cff301e961ac24fd9b4f64f96d48c708386336ec6bffe76cf8458a"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/sources/github/client.py",
@@ -127,7 +157,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "67c41dd6933a0bee979917117e47fb4e202687b1dc82bef1944d819fbffbcca8"
+      "contentHash": "f518377a564d67c2d265d09e466d0e7b5e778e28c161a75322a928ad8a0fdcec"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/sources/github/mapper.py",
@@ -137,7 +167,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "a4d40d3ea912d4565d19363fdddc1cd9b2e0c7bb0346b676d025527e7defe442"
+      "contentHash": "28209bb7a5f3ec877c64609461f470774bea2973c2dd667f199100b77cde0f90"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/sources/jira/__init__.py",
@@ -147,7 +177,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "184177d44cbadbc943463d2eea7047ca0c4487325a7716893f5a615bde68a172"
+      "contentHash": "b616594f46c879d4a4b038c37e55bbe9e89fffc45b6e5181cf314635d9c7b396"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/sources/jira/adapter.py",
@@ -157,7 +187,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "b0feb2e3f161ea986ba3f68547eb59718a0323752b0380d46544274616ddb277"
+      "contentHash": "13dddeb668049953637085b6170fa4c7bb2d967eeaf680df457a1169a12d33d7"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/sources/jira/client.py",
@@ -167,7 +197,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "8dd673d49131d62a75688d7e6882c613c1b901ab5ffc2c05634c20a1c426f019"
+      "contentHash": "070ca1bb1def88e549713a33d8bb09e5917af86c52e68ceaf46fe4d5f9abccc7"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/sources/jira/mapper.py",
@@ -177,7 +207,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "e5ec96df9f61778777a00c5e83094719bff161570e11b38e0f587f4a92bb254f"
+      "contentHash": "d3817e5dbea1c85ee9c33bcd7ca8c15a771a702a33fb63a1bde452bcd8d8467c"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/sources/slack/__init__.py",
@@ -187,7 +217,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "09c540a9a3229414ff7d9fa86ecdd10077089252fb46b06a7a4d333b9261e89c"
+      "contentHash": "efe509bf8515d6eeaeaac92439c3352aac65923b71287d3bb02d53a50d80a43a"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/sources/slack/adapter.py",
@@ -197,7 +227,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "2bf168aa57cfa181d0fb0ae518a86e6525de4b1eee143ccdd168dacceb0247f2"
+      "contentHash": "0b0d9013c94fa05301d7da94286940007d19254d927d2050bff0e6f81687055f"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/sources/slack/client.py",
@@ -207,7 +237,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "ee4004f6540b1a50024a732b7f2412d781a4c11d933b8a7370fb3694de4a5b20"
+      "contentHash": "20e3587a045e219485a5dc6f4576230ce7fc3df7c5dc5be9b9635c213d885c3f"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/sources/slack/mapper.py",
@@ -217,7 +247,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "12e84044cfbd6e7af0e9124627b296aad0814511b3311992b91e12373823831c"
+      "contentHash": "5f1667bd2b84aede28bf0c89b335fa744b0268b15504601da51aafd8b98352ac"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/storage/neo4j/__init__.py",
@@ -227,7 +257,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "d073e39e4c37b3411cdd8728b89d83e4a1a86dccef637dc2e655b0f87f22a045"
+      "contentHash": "ac93b93a36487611705045420fc9e9b61457d4b58a8f6ea614de16d0a8f5c72b"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/storage/neo4j/schema.py",
@@ -237,7 +267,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "0e219e1cfb926522ed20b0f74e80ee46bfbf8a239092a0d9c3b746be450d0265"
+      "contentHash": "92505592d760837bb8eea4ad2c43e50ab4de060cd948e18ccd431ab162473c1f"
     },
     {
       "id": "file:ingestion/src/engineering_memory_ingestion/storage/neo4j/writer.py",
@@ -247,7 +277,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "3843b16a0b70e7eccad861cb744a0203be224550ba0743f274148450abbb3ffa"
+      "contentHash": "f5056ba8d40c19e9ba22c6a3d67679d8441950508101804d4441fc4444b6ba91"
     },
     {
       "id": "file:ingestion/tests/__init__.py",
@@ -257,7 +287,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "ca17d29329ce17806de8dfc8580fa8bb596166971052926dea04f8699a3cc843"
+      "contentHash": "c7267239b6b5fa31c66506c8655c047551578111db5d8dd1907aa96065c8dfde"
     },
     {
       "id": "file:ingestion/tests/integration/test_neo4j_store.py",
@@ -267,7 +297,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "0e802502ec1c14d6a27deaab8d930e0d67eab95de5e745b502f6216bd7944607"
+      "contentHash": "f2d18ecc5f85eb9336eb8261bd588e1f2547d83bcd853008f79fb5cb5f64886b"
     },
     {
       "id": "file:ingestion/tests/unit/__init__.py",
@@ -277,7 +307,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "51d44aa9738027e233a8a4b4b3a1ede3b94169600d36403c35391f5cea6224d7"
+      "contentHash": "5fbdb1e2c0bd144cb4e7c0cf29abc71f7048535089722fec57c33439d98b4cac"
     },
     {
       "id": "file:ingestion/tests/unit/test_contracts.py",
@@ -287,7 +317,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "d8064b801c9e944a3eb8c21b8932f9ccefed574eb6bedc0e563200e1d00a708e"
+      "contentHash": "7d33d794851f8f88639fe37e680af05738abe00692ac8adc3e9cfd894d780f6e"
     },
     {
       "id": "file:ingestion/tests/unit/test_deterministic_extraction.py",
@@ -297,7 +327,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "40e52b8fde48f741e55aeaea81d94452d45c2cb949afc11c86be97884362bc0d"
+      "contentHash": "d71320ace564e59eabf96ddd10574c0cffd2e2830e9da9bf5c133fd398f0ed5d"
     },
     {
       "id": "file:ingestion/tests/unit/test_github_adapter.py",
@@ -307,7 +337,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "b44a353ac0c0895a727eb46eb8659081165d95b094f67b68288fa3634415b016"
+      "contentHash": "73101c62de0ff64f7a8a1675bc9baac6165f7bfa1c336c5052c6ca7826b346ab"
     },
     {
       "id": "file:ingestion/tests/unit/test_jira_adapter.py",
@@ -317,7 +347,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "47e39218aed0d65a660269e9e91a7983b933e3ab820d33a86558d7bdcd3bbf18"
+      "contentHash": "09f4737c67cddd1c2d428e8d47b5d61b747098621e5cef1fd316399bdf2296cb"
     },
     {
       "id": "file:ingestion/tests/unit/test_native_fixtures.py",
@@ -327,7 +357,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "bc9c26e2c2aa560bbc6cf2097de32e872ec80c791c16e4e038a67514d790e283"
+      "contentHash": "83ec01f87948e2a706a08c133cf75cebb25ca96676d3b99889c47c6e904c20a7"
     },
     {
       "id": "file:ingestion/tests/unit/test_pipeline.py",
@@ -337,7 +367,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "a948d787aa5a98dbf9c18fecd8d056f1ea7676188998c66a9421b349f1f158c9"
+      "contentHash": "c3ffc2348d7a0735ef66b6e1e148bd7ac066de0f91a4f26decb4e5fd17400750"
     },
     {
       "id": "file:ingestion/tests/unit/test_slack_adapter.py",
@@ -347,7 +377,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "e066f6a4092b7676232aa15d8940dd17f97a25840d847fce796697bbad715237"
+      "contentHash": "dbf0b2a3cc0c886b12d5d0578d67dc90e05c4b0ea65558c33c6522d525dade5a"
     }
   ],
   "edges": [],

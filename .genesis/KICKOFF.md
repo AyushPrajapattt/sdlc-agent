@@ -15,7 +15,7 @@ Load Genesis and official Ponytail full, then run `genesis brief .` for the curr
 Fetch full records with `genesis context . --id ID` only when needed. Do not load project.json or historical proof wholesale.
 Ask the index before reading code: `genesis query . search|scope|callers|callees|impact|path` (`--json` for parsing). Run `genesis query . impact PATH` before editing shared code. Answers are advisory static analysis; `ambiguous` means candidates were not ruled out, so confirm in source.
 Run `genesis serve .` for a live map of the repository when structure is unclear; it reindexes on save and is read-only. Run `genesis index .` if the index is stale and nothing is watching.
-Context fingerprint: d1eec9b2438a36d9a6a32b6f3836edda0a05454d1d6e2d1128aab0954300fc57. Use --since only after receiving that full packet; kickoff is not the packet.
+Context fingerprint: 8e96b89dcf0483a5bf9d86d53c2bc5d44377dc468747cf91040f74a9fe45ad09. Use --since only after receiving that full packet; kickoff is not the packet.
 - ASSUMPTION-c10bcce9: ING-2 uses the GitHub REST API for commit history and hosted pull-request records (including reviews…
 - DECISION-5cfb4d5e: First-slice Git and pull-request coverage
 Applicable invariants, active rules, authorization and proof references are in the packet. Truncated summaries are retrieval pointers, not the full evidence.
