@@ -55,6 +55,7 @@ digraph genesis {
   "file:tests/ingest/__init__.py" [label="tests/ingest/__init__.py",class="file"];
   "file:tests/ingest/integration/test_demo_sync.py" [label="tests/ingest/integration/test_demo_sync.py",class="file"];
   "file:tests/ingest/integration/test_neo4j_store.py" [label="tests/ingest/integration/test_neo4j_store.py",class="file"];
+  "file:tests/ingest/integration/test_text_edges.py" [label="tests/ingest/integration/test_text_edges.py",class="file"];
   "file:tests/ingest/unit/__init__.py" [label="tests/ingest/unit/__init__.py",class="file"];
   "file:tests/ingest/unit/test_contracts.py" [label="tests/ingest/unit/test_contracts.py",class="file"];
   "file:tests/ingest/unit/test_deterministic_extraction.py" [label="tests/ingest/unit/test_deterministic_extraction.py",class="file"];

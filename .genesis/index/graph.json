@@ -1,8 +1,8 @@
 {
   "schemaVersion": 2,
   "project": "platform-mvp",
-  "revision": "89d0cfa1d6d8f8765aa9498938ea5a3472548dd1",
-  "sourceHash": "bfe82cbb52944c050e0d09efe593d9982a30ee14aea03235148fcbbb2111d328",
+  "revision": "7b3daf9b6e2c73ae5cf1e834f2dfdd8f9ff6036c",
+  "sourceHash": "6914edf71f175de6b3a3c923db5b70abd64c2d31d278762bef2143ba14651270",
   "provenance": {
     "tool": "genesis-graphizer",
     "method": "static-analysis",
@@ -37,7 +37,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "07fe4067cd17397a234799408514f5edc3be2aef089b57e10836f7463c0a8ce9"
+      "contentHash": "f7213af55c720d62ff9c18e2032194334b4b632758eac62e2666fa1eb4563b80"
     },
     {
       "id": "file:src/hackfront/agent/harness.py",
@@ -77,7 +77,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "ee60d473225f970b71fac016d908ac83f9cb9d3524b270efcb763218559674d2"
+      "contentHash": "f879a16eb29080edcc1b352a07dc642856dd4c1600b3a219b7cba96b8bfdb8d7"
     },
     {
       "id": "file:src/hackfront/agent/verify.py",
@@ -87,7 +87,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "a0339d3bcd164a33004ded8310238e99c3929cf7f7a56bda014f84e63658cb6e"
+      "contentHash": "69b2edcf540bd5cfbe6debc27129a1b7e534590939d8dad9be58c870d44599db"
     },
     {
       "id": "file:src/hackfront/api/__init__.py",
@@ -107,7 +107,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "7838881bce7100fb55cc84a89dccd2fbc3ceadae1906ac4b481e233177dde84f"
+      "contentHash": "a5f4903c704d3226089e02d681bd883d16492211121d6aef49904a01136729a1"
     },
     {
       "id": "file:src/hackfront/cli.py",
@@ -127,7 +127,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "71da3171066af8b62296e8cf0b7ca42a452acdd72233d6ab91bcfd5d4ee5a650"
+      "contentHash": "884b4d502d2c34987654ed858f71cb86ecbed73724842aa7f9771f18ca38dfc8"
     },
     {
       "id": "file:src/hackfront/ingest/contracts/__init__.py",
@@ -227,7 +227,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "f727e512acde0d5857b857d2dc4cce852f7233295f7ad854802e75b8a76f20e0"
+      "contentHash": "6c3775b149cf578933531c1ec28080833c1ea09ea22cbdf25840d1a4da3763d6"
     },
     {
       "id": "file:src/hackfront/ingest/observability/__init__.py",
@@ -397,7 +397,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "88d872f595e60b9a5e520edecfa854d47c95d3a2b96482b764303f9acba6dfc3"
+      "contentHash": "dd7c08e499351a5349f71002da38272cf090a3bebe8fcda8424d46836a4cb26b"
     },
     {
       "id": "file:src/hackfront/ingest/sync.py",
@@ -477,7 +477,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "77a674b51f87d03b60ca2797b0eda18ce96be32e9ba616349da577d924edd541"
+      "contentHash": "537675f945d2d9fddb1d3ea7bd34e4fce9d0446977b36d433d882e0b16f54aad"
     },
     {
       "id": "file:tests/agent/unit/test_text2cypher.py",
@@ -487,7 +487,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "4d65bfc05ddf4f5f811921b4d3ec562b8d53281718b344b73f820cd44c11b6c0"
+      "contentHash": "8dfc2122edd6c159a23a18a06da54dc734c13baa62c2cc2345b8f7dfcb7b521f"
     },
     {
       "id": "file:tests/api/test_api.py",
@@ -497,7 +497,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "146ea8a389074907da6544af575a339cc3de84f95460e3fc1b026f4fc1235a58"
+      "contentHash": "ae8cef7a3edfc26cb78b82a32c5dbba47f665776a6dd4af5af0c73e3e26f7eb2"
     },
     {
       "id": "file:tests/conftest.py",
@@ -548,6 +548,16 @@
       "confidence": 1,
       "extractor": "filesystem",
       "contentHash": "95132eaad89efeb56063a7ea7bfe24ad7eaa871446c17f6844e7e53c08adccc0"
+    },
+    {
+      "id": "file:tests/ingest/integration/test_text_edges.py",
+      "type": "file",
+      "label": "tests/ingest/integration/test_text_edges.py",
+      "path": "tests/ingest/integration/test_text_edges.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "05b742bc2afbc3de4f1d3f06a8f7dd8368e7be003fba01a784ea389047946401"
     },
     {
       "id": "file:tests/ingest/unit/__init__.py",
@@ -607,7 +617,7 @@
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "de53bdb64407fb1f205068719280368d3bbdf9cf9d41e71043a6aa2f7aadeb82"
+      "contentHash": "2270681c6339b5b5d5cb2dfd8dd13013981d2813974fa4fd612f51c3f2de90e8"
     },
     {
       "id": "file:tests/ingest/unit/test_native_fixtures.py",
@@ -647,7 +657,7 @@
       "language": "javascript",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "590c2539c6e353b0258f33f4611b43a2c04c378c9b5ed01f08f303b2e6b0d451"
+      "contentHash": "9ef3e28e2481f509a5327f025a3bb8106a481401a6dec25f4c053bdc57023084"
     },
     {
       "id": "symbol:web/app.js#function:$",
@@ -1871,6 +1881,6 @@
     "Python AST unavailable: Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Apps > Advanced app settings > App execution aliases."
   ],
   "stats": {
-    "unresolvedCalls": 26
+    "unresolvedCalls": 27
   }
 }

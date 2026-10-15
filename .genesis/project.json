@@ -9,7 +9,7 @@
     "non_goals": [],
     "trust_boundary": "local repository",
     "created_at": "2026-10-06T14:42:56.641Z",
-    "updated_at": "2026-10-15T06:07:26.211Z"
+    "updated_at": "2026-10-15T06:18:35.471Z"
   },
   "policy": {
     "ponytail": "full",
@@ -2134,11 +2134,11 @@
     }
   },
   "checkpoint": {
-    "at": "2026-10-15T06:07:24.789Z",
+    "at": "2026-10-15T06:18:33.761Z",
     "revision": {
-      "commit": "89d0cfa1d6d8f8765aa9498938ea5a3472548dd1",
-      "dirty": true,
-      "source_hash": "fd740f2c8abd9b6a69f72b65bdd1cd5454633e679da9b1441f151ece4a4236e1"
+      "commit": "7b3daf9b6e2c73ae5cf1e834f2dfdd8f9ff6036c",
+      "dirty": false,
+      "source_hash": "0074b79f12b8063a82d9735651b38a2ec630901acc08a98b184b47d4d6085da1"
     },
     "active_task": "MVP-E2E",
     "next_action": "Run the task pre-flight."
