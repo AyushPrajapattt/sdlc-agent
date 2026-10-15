@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+/* Two palettes, one set of semantic tokens. Neutral monochrome chrome, one accent,
+   status colours only where they carry meaning (supported / inferred / unknown). */
+:root,
+:root[data-theme="light"] {
+  --bg: #ffffff;
+  --panel: #fafafa;
+  --raised: #f4f4f5;
+  --hover: #efeff1;
+  --line: #ececef;
+  --line2: #dcdce1;
+  --fg: #0a0a0b;
+  --mute: #4b4b55;
+  --dim: #85858f;
+  --accent: #4353e8;
+  --ok: #0c9a6a;
+  --warn: #b7791f;
+  --unk: #7a7a85;
+  --bad: #d92d3a;
+  --gridline: #00000008;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #0a0a0b;
+  --panel: #0f0f11;
+  --raised: #161618;
+  --hover: #1c1c1f;
+  --line: #212124;
+  --line2: #2e2e33;
+  --fg: #ededee;
+  --mute: #a4a4ad;
+  --dim: #71717b;
+  --accent: #8b9bff;
+  --ok: #3ecf8e;
+  --warn: #f0b429;
+  --unk: #8a8a94;
+  --bad: #f87171;
+  --gridline: #ffffff06;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-raised: var(--raised);
+  --color-hover: var(--hover);
+  --color-line: var(--line);
+  --color-line2: var(--line2);
+  --color-fg: var(--fg);
+  --color-mute: var(--mute);
+  --color-dim: var(--dim);
+  --color-accent: var(--accent);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-unk: var(--unk);
+  --color-bad: var(--bad);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Consolas, monospace;
+}
+
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color .15s, color .15s;
+}
+
+* { scrollbar-width: thin; scrollbar-color: var(--line2) transparent; }
+::selection { background: color-mix(in srgb, var(--accent) 28%, transparent); }
+@layer base {
+  button { cursor: pointer; }
+  :focus-visible { outline: 1.5px solid var(--accent); outline-offset: 1px; border-radius: 4px; }
+}
+
+.kbd {
+  font-family: var(--font-mono); font-size: 10.5px; padding: 0 5px; line-height: 17px;
+  border: 1px solid var(--line2); border-radius: 4px; color: var(--dim); background: var(--bg);
+}
+.label { font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: var(--dim); font-weight: 500; }
+mark.quote { background: color-mix(in srgb, var(--accent) 22%, transparent); color: inherit; border-radius: 2px; box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent); }
+
+.card { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; }
+.card-link { transition: border-color .12s, background-color .12s, transform .12s; }
+.card-link:hover { border-color: var(--line2); background: var(--panel); }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes pulse2 { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+.fade-up { animation: fadeUp .2s ease-out both; }
+.pulse2 { animation: pulse2 1s ease-in-out infinite; }
