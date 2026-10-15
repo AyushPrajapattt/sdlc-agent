@@ -9,7 +9,7 @@
     "non_goals": [],
     "trust_boundary": "local repository",
     "created_at": "2026-10-06T14:42:56.641Z",
-    "updated_at": "2026-10-15T06:18:35.471Z"
+    "updated_at": "2026-10-15T08:08:34.722Z"
   },
   "policy": {
     "ponytail": "full",
@@ -23,22 +23,24 @@
     }
   },
   "lifecycle": {
-    "phase": "build",
+    "phase": "specification",
     "status": "active",
-    "active_task": "MVP-E2E",
+    "active_task": "SPEC-1",
     "blocker": null,
-    "next_action": "Run the task pre-flight."
+    "next_action": "Ask the human to review SPEC.md, then record explicit specification approval."
   },
   "commands": {},
   "workflow": {
     "type": "new-product",
     "started_at": "2026-10-06T15:09:13.620Z",
     "spec_check": {
-      "at": "2026-10-15T05:46:19.975Z",
-      "source_hash": "e6ce038daee6a74a081c923b63dde8ececd91564ed192fa2091a6ea8119acccf",
+      "at": "2026-10-15T08:08:34.711Z",
+      "source_hash": "c078ae522b338204c01e81c84a9b7675c9b24de16ddf9f3330aeb949ac3818e5",
       "requirements": [
         "AC-1",
         "AC-10",
+        "AC-11",
+        "AC-12",
         "AC-2",
         "AC-3",
         "AC-4",
@@ -54,6 +56,8 @@
         "FR-13",
         "FR-14",
         "FR-15",
+        "FR-16",
+        "FR-17",
         "FR-2",
         "FR-3",
         "FR-4",
@@ -73,22 +77,19 @@
       "at": "2026-10-15T05:47:09.391Z",
       "source_hash": "5e9c7974ba21760101de562b8dda103c0b571b9ff17c61bf21a8f160a6fe10c4"
     },
-    "plan_approval": {
-      "human": "Shreyas Mohite",
-      "reason": "Owner approved the plan in chat on 2026-10-15 ('i am approving you plan'); work split into MVP-INGEST, MVP-AGENT, MVP-UI, MVP-E2E",
-      "at": "2026-10-15T05:47:21.816Z",
-      "source_hash": "5e9c7974ba21760101de562b8dda103c0b571b9ff17c61bf21a8f160a6fe10c4"
-    }
+    "plan_approval": null
   },
   "artifacts": [
     {
       "id": "SPEC-1",
       "type": "specification",
       "path": "SPEC.md",
-      "status": "approved",
+      "status": "checked",
       "requirements": [
         "AC-1",
         "AC-10",
+        "AC-11",
+        "AC-12",
         "AC-2",
         "AC-3",
         "AC-4",
@@ -104,6 +105,8 @@
         "FR-13",
         "FR-14",
         "FR-15",
+        "FR-16",
+        "FR-17",
         "FR-2",
         "FR-3",
         "FR-4",
@@ -118,13 +121,8 @@
         "NFR-4",
         "NFR-5"
       ],
-      "source_hash": "e6ce038daee6a74a081c923b63dde8ececd91564ed192fa2091a6ea8119acccf",
-      "approval": {
-        "human": "Shreyas Mohite",
-        "reason": "Owner approved the plan in chat on 2026-10-15 ('i am approving you plan') and delegated architectural decisions",
-        "at": "2026-10-15T05:46:26.773Z",
-        "source_hash": "e6ce038daee6a74a081c923b63dde8ececd91564ed192fa2091a6ea8119acccf"
-      }
+      "source_hash": "c078ae522b338204c01e81c84a9b7675c9b24de16ddf9f3330aeb949ac3818e5",
+      "approval": null
     }
   ],
   "assumptions": [
@@ -169,6 +167,16 @@
       "recorded_at": "2026-10-15T05:46:04.408Z",
       "paths": [],
       "tags": []
+    },
+    {
+      "id": "DECISION-db9327de",
+      "title": "Use the owner's Next.js workbench as the product UI",
+      "text": "The owner's existing UI (web/) is the product UI; the interim vanilla page is removed. Backend gains claim-level investigations with verbatim-quote verification, blame from ingested patches, and workbench endpoints (docs/workbench-api.md). The UI was found late and copied in rather than merged, because git denied the merge as a shared-resource change.",
+      "status": "accepted",
+      "source": "user chat 2026-10-15",
+      "recorded_at": "2026-10-15T08:08:18.837Z",
+      "paths": [],
+      "tags": []
     }
   ],
   "knowledge": [],
@@ -176,7 +184,7 @@
     {
       "id": "SPEC-1",
       "outcome": "Produce an approved, implementation-ready product specification",
-      "state": "done",
+      "state": "active",
       "risk": "medium",
       "owner": null,
       "scope": [
@@ -189,13 +197,8 @@
           "id": "independent-review",
           "command": "",
           "mandatory": true,
-          "status": "pass",
-          "evidence": {
-            "human": "Shreyas Mohite",
-            "reason": "Owner approved the plan in chat on 2026-10-15 ('i am approving you plan') and delegated architectural decisions",
-            "source_hash": "caef01302f08da0dc3eac1d25d08abe4a7c4eb55e46c97d2c11fa207c5ac3761",
-            "observed_at": "2026-10-15T05:46:26.773Z"
-          },
+          "status": "pending",
+          "evidence": null,
           "kind": "review"
         }
       ],
@@ -205,7 +208,7 @@
       "failures": [],
       "limitations": [],
       "created_at": "2026-10-06T15:09:13.620Z",
-      "updated_at": "2026-10-15T05:46:26.773Z"
+      "updated_at": "2026-10-15T08:08:34.722Z"
     },
     {
       "id": "ING-1",

@@ -2,13 +2,14 @@
 
 Two linked stories plus noise and one question the data cannot answer:
   A. Why are gateway retries capped at 3?   PAY-412 -> #payments-incident -> PR #218 -> 2 commits
-  B. Why is the session TTL 15 minutes?     SEC-77  -> PR #190 -> #support pushback -> PR #201
+  B. Why is the session TTL 15 minutes?     SEC-77 -> PR #190 -> #support pushback -> PR #201
   C. Why Redis for the session cache?       a thread asks; nobody knows (evidence is NOT sufficient)
 All content is invented; there are no real people, secrets or customers.
 """
 
 from __future__ import annotations
 
+import difflib
 import hashlib
 from datetime import datetime, timezone
 
@@ -47,6 +48,112 @@ RAJ, DANA, MIRA, LEE = user("raj-k", 1001), user("dana-p", 1002), user("mira-s",
 
 
 # ---------------------------------------------------------------- GitHub
+# File histories are consistent by construction: every version of a file is written out in full and each
+# commit's patch is generated from consecutive versions with difflib, so replaying the patches reproduces
+# FINAL_FILES exactly.
+def diff(old: str, new: str) -> str:
+    """Unified-diff hunks (no ---/+++ header) from old to new; a new file is `@@ -0,0 +1,N @@`."""
+    rows = list(difflib.unified_diff(old.splitlines(), new.splitlines(), lineterm="", n=3))
+    return "\n".join(rows[2:])
+
+
+REQ0 = """# runtime
+flask==3.0.3
+requests==2.31.0
+psycopg[binary]==3.1.19
+"""
+REQ1 = REQ0.replace("requests==2.31.0", "requests==2.32.4")
+
+README0 = """Gateway charge retires are capped and every request carries an idempotency key.
+
+See gateway_client.py for the retry policy.
+"""
+README1 = README0.replace("retires", "retries")
+
+GATEWAY0 = """import random
+import time
+
+import requests
+
+from .models import PaymentAttempt
+
+MAX_RETRIES = 10
+GATEWAY_URL = "https://api.stripe.invalid/v1/charges"
+
+
+class GatewayClient:
+    def __init__(self, session: requests.Session):
+        self.session = session
+
+    def charge(self, attempt: PaymentAttempt) -> dict:
+        for _ in range(MAX_RETRIES):
+            resp = self.session.post(GATEWAY_URL, json=attempt.payload)
+            if resp.status_code < 500:
+                return resp.json()
+            time.sleep(1)
+        raise GatewayUnavailable(attempt.order_id)
+"""
+GATEWAY1 = (GATEWAY0
+            .replace("MAX_RETRIES = 10\nGATEWAY_URL = \"https://api.stripe.invalid/v1/charges\"\n",
+                     "MAX_RETRIES = 3\nGATEWAY_URL = \"https://api.stripe.invalid/v1/charges\"\nBASE_DELAY_S = 0.25\n")
+            .replace("for _ in range", "for n in range")
+            .replace("time.sleep(1)", "time.sleep(random.uniform(0, BASE_DELAY_S * 2 ** n))"))
+GATEWAY2 = (GATEWAY1
+            .replace("        for n in range(MAX_RETRIES):\n",
+                     "        headers = {\"Idempotency-Key\": attempt.idempotency_key}\n        for n in range(MAX_RETRIES):\n")
+            .replace("json=attempt.payload)", "json=attempt.payload, headers=headers)"))
+
+MODELS0 = """from dataclasses import dataclass
+
+
+@dataclass
+class PaymentAttempt:
+    order_id: str
+    no: int
+    payload: dict
+"""
+MODELS1 = MODELS0 + "    idempotency_key: str\n"
+
+SESSION0 = """import time
+
+SESSION_TTL_SECONDS = 86400
+
+
+class SessionCache:
+    def __init__(self, store):
+        self._store = store
+
+    def get(self, token: str):
+        entry = self._store.get(token)
+        if entry is None:
+            return None
+        if time.time() - entry.last_seen > SESSION_TTL_SECONDS:
+            self._store.delete(token)
+            return None
+        return entry
+"""
+SESSION1 = SESSION0.replace("86400", "900")
+SESSION2 = (SESSION1.replace("import time\n\n", "import time\n\nfrom .refresh import refresh_on_activity\n\n")
+            .replace("return entry\n", "return refresh_on_activity(entry)\n"))
+REFRESH_PY = """import time
+
+
+def refresh_on_activity(entry):
+    # active users never hit the idle limit
+    entry.last_seen = time.time()
+    return entry
+"""
+
+FINAL_FILES = {  # path -> exact text after the newest commit
+    "requirements.txt": REQ1,
+    "src/payments/README.md": README1,
+    "src/payments/gateway_client.py": GATEWAY2,
+    "src/payments/models.py": MODELS1,
+    "src/auth/session_cache.py": SESSION2,
+    "src/auth/refresh.py": REFRESH_PY,
+}
+
+
 def commit(label: str, message: str, when: str, author: dict, files: list[tuple[str, str]], parents=()) -> dict:
     h = sha(label)
     date = iso(t(when))
@@ -59,33 +166,42 @@ def commit(label: str, message: str, when: str, author: dict, files: list[tuple[
         "author": author, "committer": author,
         "parents": [{"sha": p, "url": f"{API}/commits/{p}", "html_url": f"{GH}/commit/{p}"} for p in parents],
         "stats": {"additions": adds, "deletions": dels, "total": adds + dels},
-        "files": [{"filename": f, "status": "modified", "additions": p.count("\n+"), "deletions": p.count("\n-"),
+        "files": [{"filename": f, "status": "added" if p.startswith("@@ -0,0 ") else "modified",
+                   "additions": p.count("\n+"), "deletions": p.count("\n-"),
                    "changes": p.count("\n+") + p.count("\n-"), "patch": p} for f, p in files],
     }
 
 
+# Base commits come first in time and in the parent chain; the stories build on them.
+C_INIT = commit("init", "Add project scaffolding", "2025-12-01T09:00:00Z", DANA,
+                [("requirements.txt", diff("", REQ0)), ("src/payments/README.md", diff("", README0))])
+C_BASE_AUTH = commit("base-auth", "Add SessionCache", "2025-12-08T10:00:00Z", MIRA,
+                     [("src/auth/session_cache.py", diff("", SESSION0))], [C_INIT["sha"]])
+C_BASE_PAY = commit("base-pay", "Add GatewayClient", "2025-12-15T10:00:00Z", RAJ,
+                    [("src/payments/gateway_client.py", diff("", GATEWAY0)),
+                     ("src/payments/models.py", diff("", MODELS0))], [C_BASE_AUTH["sha"]])
 C_BUMP = commit("bump", "Bump requests to 2.32.4\n\nDependabot.", "2026-01-05T06:00:00Z", DANA,
-                [("requirements.txt", "@@ -3 +3 @@\n-requests==2.31.0\n+requests==2.32.4")])
+                [("requirements.txt", diff(REQ0, REQ1))], [C_BASE_PAY["sha"]])
 C_TTL = commit("ttl", "Set SESSION_TTL_SECONDS to 900\n\nSEC-77: sessions must expire after 15 idle minutes.",
                "2026-01-26T16:40:00Z", MIRA,
-               [("src/auth/session_cache.py", "@@ -12 +12 @@\n-SESSION_TTL_SECONDS = 86400\n+SESSION_TTL_SECONDS = 900")],
+               [("src/auth/session_cache.py", diff(SESSION0, SESSION1))],
                [C_BUMP["sha"]])
 C_REFRESH = commit("refresh", "Add sliding refresh for active sessions (#201)", "2026-02-10T09:40:00Z", MIRA,
-                   [("src/auth/session_cache.py", "@@ -30,3 +30,6 @@\n def touch(session):\n-    pass\n+    session.expires_at = now() + SESSION_TTL_SECONDS\n+    cache.set(session)"),
-                    ("src/auth/refresh.py", "@@ -0,0 +1,4 @@\n+def refresh(session):\n+    # active users never hit the idle limit\n+    touch(session)")],
+                   [("src/auth/session_cache.py", diff(SESSION1, SESSION2)),
+                    ("src/auth/refresh.py", diff("", REFRESH_PY))],
                    [C_TTL["sha"]])
 C_RETRY = commit("retry", "Reduce gateway MAX_RETRIES from 10 to 3\n\nPAY-412: retries amplified duplicate charges during the outage.",
                  "2026-03-03T17:12:00Z", RAJ,
-                 [("src/payments/gateway_client.py", "@@ -8 +8 @@\n-MAX_RETRIES = 10\n+MAX_RETRIES = 3")],
+                 [("src/payments/gateway_client.py", diff(GATEWAY0, GATEWAY1))],
                  [C_REFRESH["sha"]])
 C_IDEM = commit("idem", "Send Idempotency-Key on every charge request (#218)\n\nKey is order_id:attempt_no, persisted on PaymentAttempt so retries reuse it.",
                 "2026-03-04T08:55:00Z", RAJ,
-                [("src/payments/gateway_client.py", "@@ -20,2 +20,4 @@\n def charge(order, attempt):\n-    return post(order)\n+    key = f'{order.id}:{attempt.no}'\n+    return post(order, headers={'Idempotency-Key': key})"),
-                 ("src/payments/models.py", "@@ -5 +5,2 @@\n class PaymentAttempt:\n+    idempotency_key: str")],
+                [("src/payments/gateway_client.py", diff(GATEWAY1, GATEWAY2)),
+                 ("src/payments/models.py", diff(MODELS0, MODELS1))],
                 [C_RETRY["sha"]])
 C_TYPO = commit("typo", "Fix typo in payments README", "2026-03-06T12:00:00Z", DANA,
-                [("src/payments/README.md", "@@ -1 +1 @@\n-retires\n+retries")], [C_IDEM["sha"]])
-COMMITS = [C_TYPO, C_IDEM, C_RETRY, C_REFRESH, C_TTL, C_BUMP]  # newest first, like the API
+                [("src/payments/README.md", diff(README0, README1))], [C_IDEM["sha"]])
+COMMITS = [C_TYPO, C_IDEM, C_RETRY, C_REFRESH, C_TTL, C_BUMP, C_BASE_PAY, C_BASE_AUTH, C_INIT]  # newest first, like the API
 
 # Slack ids needed by PR text
 T_PAY = t("2026-03-02T15:00:00Z")
@@ -143,7 +259,7 @@ PR_REVIEWS = {218: [{
 PR_REVIEW_COMMENTS = {218: [{
     "id": 6001, "url": f"{API}/pulls/comments/6001", "html_url": f"{GH}/pull/218#discussion_r6001", "user": DANA,
     "body": "Why not make this configurable? -> No: the 8s checkout latency budget makes >3 pointless (see PAY-412).",
-    "path": "src/payments/gateway_client.py", "line": 8, "diff_hunk": "@@ -8 +8 @@\n-MAX_RETRIES = 10\n+MAX_RETRIES = 3",
+    "path": "src/payments/gateway_client.py", "line": 8, "diff_hunk": C_RETRY["files"][0]["patch"],
     "commit_id": C_RETRY["sha"], "created_at": iso(t("2026-03-04T09:50:00Z")), "updated_at": iso(t("2026-03-04T09:50:00Z"))}]}
 
 

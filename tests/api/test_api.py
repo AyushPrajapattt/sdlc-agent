@@ -129,14 +129,11 @@ def test_sync_runtime_error_safe_message(monkeypatch):
     assert r.status_code == 500 and r.json()["detail"] == "Neo4j is not configured"
 
 
-def test_web_files_offline():
-    web = Path(__file__).resolve().parents[2] / "web"
-    html = (web / "index.html").read_text(encoding="utf-8")
-    assert "app.js" in html and "style.css" in html
-    for f in ("index.html", "app.js", "style.css"):  # no remote loads (links to evidence are runtime data)
-        assert not re.search(r"""(src|href)=["']https?:|url\(\s*["']?https?:|@import|fetch\(\s*["']https?:""",
-                             (web / f).read_text(encoding="utf-8"))
-    assert client.get("/").status_code == 200
+def test_ui_origin_allowed_and_web_source_not_served():
+    assert client.get("/web/app/page.tsx").status_code == 404  # the Next.js source tree must never be exposed
+    bad = {"question": "x", "mode": "nope"}  # rejected by validation: no side effects
+    assert client.post("/api/ask", json=bad, headers={"Origin": "http://localhost:3000"}).status_code == 422
+    assert client.post("/api/ask", json=bad, headers={"Origin": "https://evil.example"}).status_code == 403
 
 
 def test_cross_origin_mutation_refused_same_origin_allowed():

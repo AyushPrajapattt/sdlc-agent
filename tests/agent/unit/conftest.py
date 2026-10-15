@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from hackfront.ingest.contracts import (
@@ -27,6 +29,42 @@ def cid(rtype, sid):
 
 def url(rtype, sid):
     return f"https://example.test/{rtype}/{sid}"
+
+
+class Scripted:
+    """Fake OpenAI client: answers by the schema title found in the prompt. `answer` is the Synthesis payload."""
+
+    def __init__(self, plan_calls, answer=None, sufficient=True, relevant=None):
+        self.plan_calls, self.answer, self.sufficient, self.seen = plan_calls, answer, sufficient, []
+        self.prompts = []
+        self.relevant = relevant if relevant is not None else [cid("pull_request", "pr1"), cid("issue", "issue1")]
+        self.chat = self
+        self.completions = self
+
+    def create(self, model, messages, max_tokens):
+        title = json.loads(messages[0]["content"].split("matching this JSON Schema:\n")[-1])["title"]
+        self.seen.append(title)
+        self.prompts.append(messages[0]["content"])
+        out = {
+            "Understanding": {"intent": "why cap", "entities": ["PAY-412"], "time_hint": None},
+            "Plan": {"reasoning": "start", "calls": self.plan_calls},
+            "Sufficiency": {"sufficient": self.sufficient, "relevant_ids": self.relevant,
+                            "gap": "" if self.sufficient else "no design doc"},
+            "Synthesis": self.answer,
+            "CypherOut": {"cypher": "MATCH (i:Artifact {record_kind:'issue'}) RETURN i"},
+        }[title]
+        msg = type("M", (), {"content": json.dumps(out)})
+        return type("R", (), {"choices": [type("C", (), {"message": msg})]})
+
+
+@pytest.fixture
+def fake(monkeypatch):
+    from hackfront.agent import llm
+
+    def install(f):
+        monkeypatch.setattr(llm, "_clients", {"azure": f})
+        return f
+    return install
 
 
 @pytest.fixture

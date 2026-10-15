@@ -25,12 +25,13 @@ More: [docs/architecture.md](docs/architecture.md) · scope and acceptance crite
 uv sync
 cp .env.example .env          # add an LLM key (AZURE_FOUNDRY_* or SARVAM_API_KEY)
 docker compose up -d          # Neo4j on bolt://localhost:7688 (+ a throwaway test DB on 7689)
-uv run hackfront demo         # loads the synthetic acme-demo workspace through the real pipeline
-uv run hackfront serve        # http://127.0.0.1:8000
-uv run hackfront ask "Why are gateway retries capped at 3?"   # or from the terminal
+uv run hackfront serve        # API on http://127.0.0.1:8000
+cd web && npm ci && npm run dev   # the workbench UI on http://localhost:3000 (proxies /api to :8000)
 ```
 
-Try: *Why are gateway retries capped at 3?* · *Why is the session TTL 15 minutes?* · *Can I raise MAX_RETRIES in src/payments/gateway_client.py?* · *Why did we choose Redis for the session cache?* (the graph cannot answer this one — the agent should say so).
+Open http://localhost:3000, **Connections → Load demo data** (or `uv run hackfront demo`), open `src/payments/gateway_client.py` and **click the `MAX_RETRIES = 3` line**: the agent investigates why, and each claim is marked supported / inferred / unknown with quotes verified against the sources. If port 3000 is taken, run `npm run dev -- --port 3100` and start the API with `HACKFRONT_ORIGINS=http://localhost:3100`.
+
+Terminal alternative: `uv run hackfront ask "Why are gateway retries capped at 3?"`. Questions the demo can answer: *Why are gateway retries capped at 3?* · *Why is the session TTL 15 minutes?*; and one it cannot (*Why did we choose Redis for the session cache?*), where the agent should say "not established".
 
 ## Connect your own sources
 

@@ -3,7 +3,6 @@ from pydantic import BaseModel
 
 from hackfront.agent import llm
 from hackfront.agent.flow import extract_ids, extract_seeds
-from hackfront.agent.verify import NOT_ESTABLISHED, verify
 
 
 class Fake:
@@ -77,34 +76,6 @@ def test_structured_gives_up(monkeypatch):
         llm.structured("azure", "hi", Out)
 
 
-EV = {"i1": {"id": "i1", "url": "https://x/1"}, "i2": {"id": "i2", "url": "https://x/2"}}
-
-
-def ans(text, cites, conf="high", unc=""):
-    return {"answer": text, "citations": cites, "confidence": conf, "uncertainty": unc}
-
-
-def test_verify_clean_answer_keeps_confidence():
-    out = verify(ans("because [https://x/1].", ["https://x/1"]), EV, True)
-    assert out["confidence"] == "high" and out["citations"] == ["https://x/1"] and "[https://x/1]" in out["answer"]
-
-
-def test_verify_removes_hallucinated_citation_and_caps():
-    out = verify(ans("a [https://x/1] b [https://evil/9] see https://evil/8.", ["https://x/1", "https://evil/9"]), EV, True)
-    assert out["citations"] == ["https://x/1"] and "evil" not in out["answer"]
-    assert out["confidence"] == "low" and "2 unsupported" in out["uncertainty"]
-
-
-def test_verify_insufficient_or_no_citation_is_low():
-    assert verify(ans("x [https://x/2]", ["https://x/2"]), EV, False, "gap")["confidence"] == "low"
-    out = verify(ans("no cites", []), EV, True)
-    assert out["confidence"] == "low" and "No supported citation" in out["uncertainty"]
-
-
-def test_not_established_shape():
-    assert NOT_ESTABLISHED["confidence"] == "low" and NOT_ESTABLISHED["citations"] == []
-
-
 def test_debug_seed_extraction():
     trace = ('Traceback (most recent call last):\n  File "/app/src/pay/gateway.py", line 88, in retry\n'
              '  File "/usr/lib/python3/site-packages/requests/api.py", line 1\n'
@@ -116,13 +87,3 @@ def test_debug_seed_extraction():
 
 def test_extract_ids():
     assert extract_ids("why github:acme:commit:c1 and http://x") == ["github:acme:commit:c1"]
-
-
-def test_verify_scheme_case_and_fragment():
-    from hackfront.agent.verify import verify
-
-    ev = {"a": {"url": "https://github.com/o/r/pull/218", "id": "a"}}
-    out = verify({"answer": "x [https://github.com/o/r/pull/218#issuecomment-1] HTTPS://evil.example/x",
-                  "citations": ["https://github.com/o/r/pull/218"], "confidence": "high", "uncertainty": ""}, ev, True)
-    assert "evil" not in out["answer"] and out["citations"] == ["https://github.com/o/r/pull/218"]
-    assert out["confidence"] == "low"

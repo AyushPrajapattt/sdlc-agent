@@ -70,7 +70,7 @@ evidence_chain or neighbors on the most promising ids to follow commit -> PR -> 
 Ids for neighbors/evidence_chain/get must be copied exactly from the evidence above.
 Prefer the fixed tools. Use cypher_query only for multi-hop, aggregate or filter questions they cannot express."""
 
-PROMPT_VERSION = "v3"
+PROMPT_VERSION = "v4"
 
 
 class CypherOut(BaseModel):
@@ -101,21 +101,36 @@ Evidence:
 Be strict: correlation in time is not a stated reason. Name the gap precisely if insufficient."""
 
 
-class Answer(BaseModel):
-    answer: str = Field(description="Direct answer. Every claim cites a source URL in [brackets].")
-    citations: list[str] = Field(description="Source URLs used.")
-    confidence: Literal["high", "medium", "low"]
-    uncertainty: str = Field(description="What the evidence does not establish. Empty only if nothing.")
+class CiteIn(BaseModel):
+    id: str = Field(description="canonical id of an evidence item, copied exactly from its [brackets].")
+    quote: str | None = Field(default=None, description="Short VERBATIM excerpt of that item's text; null if none fits.")
 
 
-SYNTHESIZE = """Answer using ONLY the evidence below.
+class ClaimIn(BaseModel):
+    text: str = Field(description="One self-contained statement.")
+    status: Literal["supported", "inferred", "unknown"]
+    note: str = Field(default="", description="inferred: why this is your reasoning. unknown: what is missing. Else empty.")
+    cites: list[CiteIn] = Field(default_factory=list)
+
+
+class Synthesis(BaseModel):
+    summary: str = Field(description="2-4 sentence direct answer, consistent with the claims.")
+    claims: list[ClaimIn]
+    gaps: list[str] = Field(default_factory=list, description="What is missing from the graph.")
+
+
+SYNTHESIZE = """Answer using ONLY the evidence below, as a list of claims.
 
 Task: {task}
 Rules:
-- Cite each claim inline as [url] using the exact url of an evidence item; list the same urls in citations.
-- State what the evidence does not establish in uncertainty. If something is not in the evidence write "not established" instead of guessing.
-- Edges are explicit links only. Two things happening at similar times is not a reason or a cause.
-- If the attempt limit was hit or evidence is thin, say so and lower confidence.
+- Each claim has a status:
+  supported = a source in the evidence states it. Cite it: cites=[{{id, quote}}] where id is the evidence id in [brackets]
+    and quote is a short VERBATIM excerpt (copy-paste, no paraphrase) of that item's text.
+  inferred = your own reasoning beyond what any source says. Never present inference as fact; note says why. May cite what you reasoned from.
+  unknown = something the question touches that the evidence cannot establish. No cites; note says what is missing.
+- Edges are explicit links only. Two things happening at similar times is never a reason or a cause.
+- gaps = what is missing from the graph (ADRs, design docs, logs, config, metrics that were not ingested).
+- Do not write URLs. If the attempt limit was hit or evidence is thin, say so with an unknown claim.
 
 Input: {question}
 Evidence sufficient: {sufficient}

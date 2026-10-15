@@ -32,7 +32,9 @@ Platform (new):
 - FR-12: LLM providers Azure Foundry and Sarvam AI behind one interface, selected by configuration or per request.
 - FR-13: Answer integrity. Every cited URL must belong to retrieved evidence; unsupported citations are removed and confidence is capped; insufficient evidence yields an explicit "not established" answer rather than a guess.
 - FR-14: Modes: `why`, `debug` (paths/keys extracted deterministically from pasted errors seed retrieval) and `change` (what constraints and decisions guard this code).
-- FR-15: API and web UI: source status and workspace form, sync/demo actions, ask box with mode and provider, live agent trace, cited answer, and the evidence subgraph used.
+- FR-15: API and web UI. The UI is the owner's Next.js "why workbench" (`web/`) wired to the real backend per `docs/workbench-api.md`: connections dialog (real workspace config, sync, demo), code pane with blame, ask box and line-click investigations, live agent trace, claim-level answer, gaps, "still valid?" checks, excluded evidence and the evidence graph. No mock data remains.
+- FR-16: Claim-level investigations. An answer is a set of claims, each `supported` (a source states it), `inferred` (the agent's reasoning, flagged) or `unknown`, with citations whose quotes are verified verbatim against the cited node's text in code; unverifiable citations are dropped and unsupported claims are downgraded. Excluded evidence carries a deterministic reason; "still valid?" checks are deterministic graph facts. Investigations are stored and re-openable.
+- FR-17: Blame from evidence. Per-line blame for a file is computed by replaying the ingested commit patches (oldest to newest); when history is missing or a patch does not apply the result is marked incomplete with a note and nothing is guessed.
 
 ## Non-functional requirements
 
@@ -59,7 +61,9 @@ Platform (new):
 - AC-7: A question with no evidence in the graph is answered "not established" with low confidence and no citations.
 - AC-8: A citation not present in retrieved evidence never reaches the user.
 - AC-9: The same question works with either configured provider (Azure or Sarvam) without code changes.
-- AC-10: From a clean checkout, `uv sync`, `docker compose up -d`, `uv run hackfront demo`, `uv run hackfront serve` yields a working UI.
+- AC-10: From a clean checkout, `uv sync`, `docker compose up -d`, `uv run hackfront demo`, `uv run hackfront serve` and `npm run dev` in `web/` yield a working UI.
+- AC-11: In the UI, clicking the `MAX_RETRIES = 3` line of the demo `gateway_client.py` opens an investigation whose supported claims cite the Jira issue, PR and Slack discussion with verified quotes.
+- AC-12: A fabricated citation id or non-verbatim quote returned by a model never appears as a supported citation.
 
 ## Risks
 
@@ -70,7 +74,7 @@ Platform (new):
 
 ## Constraints
 
-- Python managed with uv (single project at repo root, `src/hackfront`); Neo4j via the official driver; LangGraph for the agent flow; FastAPI for the API; the UI is static files served by the API (no JS build step).
+- Python managed with uv (single project at repo root, `src/hackfront`); Neo4j via the official driver; LangGraph for the agent flow; FastAPI for the API; the UI is the Next.js app in `web/` (dev server proxies `/api/*` to FastAPI).
 - LLM providers use OpenAI-compatible chat endpoints: Azure Foundry (`/openai/v1/`) and Sarvam (`https://api.sarvam.ai/v1/`, `api-subscription-key` header).
 - A dedicated Neo4j runs via `docker-compose.yml` on ports 7688/7475; other local Neo4j instances are never touched.
 

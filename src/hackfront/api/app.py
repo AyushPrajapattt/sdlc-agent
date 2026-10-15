@@ -6,16 +6,17 @@ import json
 import os
 import threading
 from urllib.parse import urlsplit
-from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from hackfront import config
 
 config.load_env()
+# The Next.js UI (web/) runs on :3000 and proxies /api/* here; its origin is the only other one trusted.
+ALLOWED_ORIGINS = set(filter(None, os.environ.get(
+    "HACKFRONT_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")))
 app = FastAPI(title="hackfront", docs_url=None, redoc_url=None)
 
 
@@ -23,9 +24,12 @@ app = FastAPI(title="hackfront", docs_url=None, redoc_url=None)
 async def same_origin_only(request, call_next):
     """CSRF guard: a browser page on another origin must not drive state-changing routes."""
     origin = request.headers.get("origin")
-    if request.method not in ("GET", "HEAD") and origin and urlsplit(origin).netloc != request.headers.get("host"):
+    if (request.method not in ("GET", "HEAD") and origin
+            and urlsplit(origin).netloc != request.headers.get("host") and origin not in ALLOWED_ORIGINS):
         return JSONResponse({"detail": "cross-origin request refused"}, status_code=403)
     return await call_next(request)
+
+
 MODES = ("why", "debug", "change")
 _sync_lock = threading.Lock()  # ponytail: single process, one sync at a time
 
@@ -129,7 +133,14 @@ def sync(body: SyncBody | None = None) -> dict:
 def demo() -> dict:
     from hackfront.ingest.demo import DEMO_WORKSPACE
 
-    return _sync_response(_run_sync(DEMO_WORKSPACE, True))
+    out = _sync_response(_run_sync(DEMO_WORKSPACE, True))
+    try:  # make the demo scopes "connected" so the UI does not lock them, but never overwrite real settings
+        current = config.load_workspace()
+        if not any((current["github"]["repos"], current["jira"]["projects"], current["slack"]["channels"])):
+            config.save_workspace(DEMO_WORKSPACE)
+    except Exception:  # noqa: BLE001
+        pass
+    return out
 
 
 def _sse(event: str, data: dict) -> str:
@@ -162,6 +173,7 @@ def ask(body: AskBody):
     return StreamingResponse(stream(), media_type="text/event-stream", headers={"Cache-Control": "no-cache"})
 
 
-_web = Path(__file__).resolve().parents[3] / "web"
-if _web.is_dir():
-    app.mount("/", StaticFiles(directory=_web, html=True), name="web")
+from . import investigate, workbench  # noqa: E402  (routers; after app + middleware exist)
+
+app.include_router(workbench.router)
+app.include_router(investigate.router)
