@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+from urllib.parse import urlsplit
 
 HOME = Path(os.environ.get("HACKFRONT_HOME", Path.cwd()))
 WORKSPACE_FILE = HOME / "workspace.json"
@@ -66,8 +67,10 @@ def validate_workspace(data: dict) -> dict:
             clean[key] = value
         out[section] = clean
     site = out["jira"]["site"]
-    if site and not site.startswith("https://"):
-        raise ValueError("jira.site must be an https URL")
+    if site:
+        host = urlsplit(site).hostname or ""
+        if not site.startswith("https://") or not host.endswith(".atlassian.net"):
+            raise ValueError("jira.site must be an https Jira Cloud URL (*.atlassian.net); the API token is sent to this host")
     return out
 
 

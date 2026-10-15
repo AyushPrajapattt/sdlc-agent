@@ -17,7 +17,7 @@ def ids(artifact):
 
 def test_pr_body_links_jira_slack_and_pr():
     body = ("Fixes PAY-412. Decision in https://acme.slack.com/archives/C01PAY/p1772461200000100 "
-            "see also #190 and UTF-8, SHA-256, OTHER-9")
+            "see #190 and UTF-8, SHA-256, OTHER-9; color: #333; border #000000")
     out = ids(add_text_references(art("github", "acme/shop", "pull_request", "218", body), CFG))
     assert set(out) == {
         "jira:PAY:issue:PAY-412",
@@ -49,3 +49,9 @@ def test_no_self_link_and_dedupe_and_idempotent():
     once = add_text_references(a, CFG)
     assert set(ids(once)) == {"jira:PAY:issue:PAY-7"} and len(once.references) == 1
     assert add_text_references(once, CFG).references == once.references
+
+
+def test_slack_ts_boundary_and_query_string_url():
+    t = ("https://acme.slack.com/archives/C1/p17000000001234567890 "
+         "https://x.example/?next=https://github.com/acme/shop/pull/7")
+    assert not ids(add_text_references(art("jira", "PAY", "issue", "PAY-1", t, RecordKind.ISSUE), CFG))

@@ -56,3 +56,9 @@ Neo4j tests wipe `Artifact` nodes in the **test** database only.
 ## Layout
 
 `src/hackfront/ingest` contracts, sources (github/jira/slack), extraction (deterministic + text links), Neo4j storage, sync, demo data · `src/hackfront/agent` providers, harness, flow, verification · `src/hackfront/api` FastAPI · `web/` static UI · `research/` background papers.
+
+## Known limits
+
+- Local single-user tool: the API has no login and binds to 127.0.0.1; do not expose it. Run the agent with a read-only Neo4j user in any shared setup.
+- Sync is a bounded full backfill (20 pages per stream) through idempotent writes, not an incremental cursor; the UI flags incomplete streams. Text-derived edges are rebuilt from current text on every write; deleted source records are not removed from the graph.
+- Real-LLM behaviour (Azure, Sarvam) is covered by `tests/e2e` and needs your keys; unit tests use scripted models.

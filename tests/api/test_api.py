@@ -105,7 +105,7 @@ def test_sync_409_while_running(monkeypatch):
     def slow(ws, *, demo=False):
         started.set()
         release.wait(5)
-        return [{"stream": "s"}]
+        return [{"stream": "s", "complete": False}]
 
     fake(monkeypatch, "hackfront.ingest.sync", sync_workspace=slow)
     fake(monkeypatch, "hackfront.ingest.demo", DEMO_WORKSPACE={})
@@ -116,7 +116,7 @@ def test_sync_409_while_running(monkeypatch):
     assert client.post("/api/demo").status_code == 409
     release.set()
     t.join()
-    assert out["r"].json() == {"summaries": [{"stream": "s"}]}
+    assert out["r"].json() == {"summaries": [{"stream": "s", "complete": False}], "complete": False}  # partial is visible
     assert client.post("/api/demo").status_code == 200
 
 
@@ -137,3 +137,22 @@ def test_web_files_offline():
         assert not re.search(r"""(src|href)=["']https?:|url\(\s*["']?https?:|@import|fetch\(\s*["']https?:""",
                              (web / f).read_text(encoding="utf-8"))
     assert client.get("/").status_code == 200
+
+
+def test_cross_origin_mutation_refused_same_origin_allowed():
+    body = {"github": {"owner": "", "repos": []}, "jira": {"site": "", "projects": []}, "slack": {"workspace": "", "channels": []}}
+    assert client.put("/api/workspace", json=body, headers={"Origin": "https://evil.example"}).status_code == 403
+    assert client.post("/api/demo", headers={"Origin": "https://evil.example"}).status_code == 403
+    assert client.put("/api/workspace", json=body, headers={"Origin": "http://testserver"}).status_code == 200
+
+
+def test_jira_site_must_be_atlassian_cloud():
+    from hackfront import config
+
+    for site in ("https://evil.example", "http://x.atlassian.net", "https://atlassian.net.evil.example"):
+        try:
+            config.validate_workspace({"jira": {"site": site, "projects": []}})
+        except ValueError:
+            continue
+        raise AssertionError(site)
+    assert config.validate_workspace({"jira": {"site": "https://acme.atlassian.net", "projects": ["PAY"]}})

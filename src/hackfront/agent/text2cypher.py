@@ -7,7 +7,9 @@ import re
 from .harness import ID_RE, HarnessError
 
 MAX_ROWS = 25
-FORBIDDEN = re.compile(r"\b(CREATE|MERGE|DELETE|DETACH|SET|REMOVE|DROP|LOAD|FOREACH|CALL|UNION|APOC|DBMS|PERIODIC)\b", re.I)
+FORBIDDEN = re.compile(r"\b(CREATE|MERGE|DELETE|DETACH|SET|REMOVE|DROP|LOAD|FOREACH|CALL|UNION|APOC|DBMS|PERIODIC"
+                       r"|SHOW|TERMINATE|USE|INSERT|START|STOP|GRANT|DENY|REVOKE|ALTER|RENAME|REDUCE|RANGE|REPEAT)\b", re.I)
+STARTS = re.compile(r"(MATCH|OPTIONAL\s+MATCH|WITH|UNWIND|RETURN)\b", re.I)  # admin/schema commands start otherwise
 _LITERALS = re.compile(r"'(?:[^'\\]|\\.)*'|\"(?:[^\"\\]|\\.)*\"|`[^`]*`")
 _LIMIT = re.compile(r"\bLIMIT\s+(\d+)\s*$", re.I)
 
@@ -30,6 +32,8 @@ def validate(cypher: str) -> str:
         raise HarnessError("empty query")
     q = cypher.strip().rstrip(";").strip()
     skeleton = _LITERALS.sub("''", q)  # keywords inside string literals are harmless
+    if not STARTS.match(skeleton):
+        raise HarnessError("query must start with MATCH, OPTIONAL MATCH, WITH, UNWIND or RETURN")
     if "//" in skeleton or "/*" in skeleton:
         raise HarnessError("comments are not allowed")
     if ";" in skeleton:

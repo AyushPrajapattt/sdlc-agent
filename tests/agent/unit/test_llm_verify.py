@@ -116,3 +116,13 @@ def test_debug_seed_extraction():
 
 def test_extract_ids():
     assert extract_ids("why github:acme:commit:c1 and http://x") == ["github:acme:commit:c1"]
+
+
+def test_verify_scheme_case_and_fragment():
+    from hackfront.agent.verify import verify
+
+    ev = {"a": {"url": "https://github.com/o/r/pull/218", "id": "a"}}
+    out = verify({"answer": "x [https://github.com/o/r/pull/218#issuecomment-1] HTTPS://evil.example/x",
+                  "citations": ["https://github.com/o/r/pull/218"], "confidence": "high", "uncertainty": ""}, ev, True)
+    assert "evil" not in out["answer"] and out["citations"] == ["https://github.com/o/r/pull/218"]
+    assert out["confidence"] == "low"

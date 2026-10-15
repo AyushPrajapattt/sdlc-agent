@@ -13,10 +13,11 @@ from dataclasses import dataclass, replace
 from ..contracts import Artifact, RelationshipKind, SourceIdentity, SourceReference
 
 JIRA_KEY = re.compile(r"\b([A-Z][A-Z0-9]{1,9})-(\d{1,6})\b")
-GH_PR_URL = re.compile(r"https?://github\.com/([\w.-]+)/([\w.-]+)/pull/(\d+)")
-GH_COMMIT_URL = re.compile(r"https?://github\.com/([\w.-]+)/([\w.-]+)/commit/([0-9a-f]{40})\b")
-BARE_PR = re.compile(r"(?<![\w/&#])#(\d{1,7})\b")
-SLACK_LINK = re.compile(r"https?://([\w-]+)\.slack\.com/archives/([A-Z0-9]+)/p(\d{10})(\d{6})(\?[^\s>|)]*)?")
+GH_PR_URL = re.compile(r"(?<![=&?])https?://github\.com/([\w.-]+)/([\w.-]+)/pull/(\d+)")
+GH_COMMIT_URL = re.compile(r"(?<![=&?])https?://github\.com/([\w.-]+)/([\w.-]+)/commit/([0-9a-f]{40})\b")
+# "(#218)" (squash-merge titles) or "PR #218" / "fixes #218" style; never a bare "#333" (CSS colours, anchors)
+BARE_PR = re.compile(r"\(#(\d{1,7})\)|(?i:\b(?:pr|pull|fixes|closes|resolves|refs|see|follows|reverts))\s+#(\d{1,7})\b")
+SLACK_LINK = re.compile(r"https?://([\w-]+)\.slack\.com/archives/([A-Z0-9]+)/p(\d{10})(\d{6})(?!\d)(\?[^\s>|)]*)?")
 
 
 @dataclass(frozen=True, slots=True)
@@ -56,7 +57,8 @@ def _refs_in(text: str, locator: str, artifact: Artifact, config: LinkConfig) ->
             "github", f"{m.group(1)}/{m.group(2)}", "commit", m.group(3), m.group(0))))
     if provider == "github":  # bare #N is only meaningful inside its own repository
         for m in BARE_PR.finditer(text):
-            found.append((m.start(), m.end(), SourceIdentity("github", workspace, "pull_request", m.group(1))))
+            found.append((m.start(), m.end(), SourceIdentity(
+                "github", workspace, "pull_request", m.group(1) or m.group(2))))
     for m in SLACK_LINK.finditer(text):
         if config.slack_workspace and m.group(1) != config.slack_workspace:
             continue

@@ -103,8 +103,8 @@ def build(h: Harness, provider: str, model: str):
             done.append(key)
             try:
                 rows = h.call(tool, arg)
-            except HarnessError as error:
-                rejected.append(f"{key}: {error}")
+            except Exception as error:  # noqa: BLE001  harness refusal or transient DB error: report, keep going
+                rejected.append(f"{key}: {type(error).__name__}: {str(error)[:120]}")
                 continue
             for row in rows:
                 evidence.setdefault(row["id"], row)

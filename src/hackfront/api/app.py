@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import threading
+from urllib.parse import urlsplit
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -16,6 +17,15 @@ from hackfront import config
 
 config.load_env()
 app = FastAPI(title="hackfront", docs_url=None, redoc_url=None)
+
+
+@app.middleware("http")
+async def same_origin_only(request, call_next):
+    """CSRF guard: a browser page on another origin must not drive state-changing routes."""
+    origin = request.headers.get("origin")
+    if request.method not in ("GET", "HEAD") and origin and urlsplit(origin).netloc != request.headers.get("host"):
+        return JSONResponse({"detail": "cross-origin request refused"}, status_code=403)
+    return await call_next(request)
 MODES = ("why", "debug", "change")
 _sync_lock = threading.Lock()  # ponytail: single process, one sync at a time
 
@@ -86,6 +96,11 @@ def put_workspace(data: dict) -> dict:
         raise HTTPException(422, str(error)) from None
 
 
+def _sync_response(summaries: list[dict]) -> dict:
+    """`complete` is false if any stream failed or hit the page bound: the graph may be partial."""
+    return {"summaries": summaries, "complete": all(s["complete"] for s in summaries)}
+
+
 def _run_sync(workspace: dict, demo: bool):
     if not _sync_lock.acquire(blocking=False):
         raise HTTPException(409, "A sync is already running")
@@ -106,15 +121,15 @@ def sync(body: SyncBody | None = None) -> dict:
     if body and body.demo:
         from hackfront.ingest.demo import DEMO_WORKSPACE
 
-        return {"summaries": _run_sync(DEMO_WORKSPACE, True)}
-    return {"summaries": _run_sync(config.load_workspace(), False)}
+        return _sync_response(_run_sync(DEMO_WORKSPACE, True))
+    return _sync_response(_run_sync(config.load_workspace(), False))
 
 
 @app.post("/api/demo")
 def demo() -> dict:
     from hackfront.ingest.demo import DEMO_WORKSPACE
 
-    return {"summaries": _run_sync(DEMO_WORKSPACE, True)}
+    return _sync_response(_run_sync(DEMO_WORKSPACE, True))
 
 
 def _sse(event: str, data: dict) -> str:

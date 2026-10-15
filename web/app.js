@@ -106,7 +106,7 @@ async function runSync(path, body, btn) {
   try {
     const r = await api(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     showRuns(r.summaries);
-    setMsg("syncmsg", "Finished.");
+    setMsg("syncmsg", r.complete === false ? "Finished with INCOMPLETE streams: the graph may be partial (see run summaries)." : "Finished.");
   } catch (e) { setMsg("syncmsg", "Failed: " + e.message, true); }
   btns.forEach((b) => (b.disabled = false));
   loadStatus();

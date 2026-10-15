@@ -69,7 +69,7 @@ def test_repair_path_bad_then_good(graph):
 def test_gives_up_after_two_repairs_without_raising(graph):
     h, calls = harness(graph, ["CREATE (n:X) RETURN n"] * 3)
     assert h.call("cypher_query", "q") == [] and len(calls) == 3
-    assert "CREATE" in h.cypher_log[0]["error"]
+    assert h.cypher_log[0]["error"]
 
 
 def test_write_attempt_never_changes_graph(graph):
@@ -84,3 +84,23 @@ def test_write_attempt_never_changes_graph(graph):
 def test_cypher_query_unavailable_without_llm(graph):
     with pytest.raises(H.HarnessError):
         H.Harness(graph).call("cypher_query", "q")
+
+
+import pytest
+
+
+@pytest.mark.parametrize("q", [
+    "SHOW SETTINGS YIELD name RETURN name",
+    "TERMINATE TRANSACTIONS 'x' YIELD message RETURN message",
+    "USE system MATCH (n) RETURN n",
+    "INSERT (:X) RETURN 1",
+    "MATCH (n) RETURN reduce(s='a', i IN range(1,22) | s + s)",
+    "MATCH (n) RETURN range(1,3000000)",
+])
+def test_admin_and_size_bomb_queries_rejected(q):
+    with pytest.raises(H.HarnessError):
+        T.validate(q)
+
+
+def test_plain_read_still_accepted():
+    assert T.validate("MATCH (a:Artifact) RETURN a.canonical_id").endswith("LIMIT 25")

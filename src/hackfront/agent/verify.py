@@ -4,8 +4,13 @@ from __future__ import annotations
 
 import re
 
-BRACKETED = re.compile(r"[ \t]?\[(https?://[^\]\s]+)\]")
-BARE = re.compile(r"https?://[^\s\]\)>,\"']+")
+BRACKETED = re.compile(r"[ \t]?\[(https?://[^\]\s]+)\]", re.I)
+BARE = re.compile(r"https?://[^\s\]\)>,\"']+", re.I)
+
+
+def _norm(url: str) -> str:
+    """Exact URL identity, except fragment/query noise (the host and path must still match exactly)."""
+    return url.split("#", 1)[0].split("?", 1)[0]
 
 NOT_ESTABLISHED = {
     "answer": "Not established: the evidence graph contains no records that bear on this question.",
@@ -18,18 +23,18 @@ NOT_ESTABLISHED = {
 
 def verify(answer: dict, evidence: dict[str, dict], sufficient: bool, gap: str = "") -> dict:
     """Drop unsupported URLs from text and citations, add an uncertainty note, cap confidence."""
-    allowed = {r["url"] for r in evidence.values() if r.get("url") and not r.get("is_stub")}
+    allowed = {_norm(r["url"]) for r in evidence.values() if r.get("url") and not r.get("is_stub")}
     removed: set[str] = set()
 
     def keep_bracket(m):
-        if m.group(1) in allowed:
+        if _norm(m.group(1)) in allowed:
             return m.group(0)
         removed.add(m.group(1))
         return ""
 
     def keep_bare(m):
         url = m.group(0).rstrip(".;:")
-        if url in allowed:
+        if _norm(url) in allowed:
             return m.group(0)
         removed.add(url)
         return ""

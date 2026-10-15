@@ -83,6 +83,9 @@ def _write_artifact_tx(tx, artifact: Artifact, properties: dict[str, Any]) -> No
         canonical_id=artifact.canonical_id,
         properties=properties,
     ).consume()
+    tx.run(
+        "MATCH (:Artifact {canonical_id: $id})-[r {origin: 'text'}]->() DELETE r", id=artifact.canonical_id
+    ).consume()
     for reference in artifact.references:
         # RelationshipKind is a closed enum, so this identifier cannot contain Cypher syntax.
         kind = reference.relationship.value
