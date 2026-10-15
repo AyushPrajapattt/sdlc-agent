@@ -1,0 +1,5 @@
+{
+  "github": { "owner": "your-org", "repos": ["your-repo"] },
+  "jira": { "site": "https://your-org.atlassian.net", "projects": ["PAY"] },
+  "slack": { "workspace": "your-slack-subdomain", "channels": ["C0123456789"] }
+}

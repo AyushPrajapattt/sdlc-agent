@@ -1,8 +1,8 @@
 {
   "schemaVersion": 2,
-  "project": "hackfront",
-  "revision": "0537345c1f23893d2290f5de8101feefe2c6a860",
-  "sourceHash": "e10552d6a7c879d208922ed2105b644a075e4383b00883cfe70d63c6d9f0eb61",
+  "project": "platform-mvp",
+  "revision": "89d0cfa1d6d8f8765aa9498938ea5a3472548dd1",
+  "sourceHash": "bfe82cbb52944c050e0d09efe593d9982a30ee14aea03235148fcbbb2111d328",
   "provenance": {
     "tool": "genesis-graphizer",
     "method": "static-analysis",
@@ -10,381 +10,1867 @@
   },
   "nodes": [
     {
-      "id": "file:agent/investigator.py",
+      "id": "file:src/hackfront/__init__.py",
       "type": "file",
-      "label": "agent/investigator.py",
-      "path": "agent/investigator.py",
+      "label": "src/hackfront/__init__.py",
+      "path": "src/hackfront/__init__.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "6b5553181e37662da58c7b917eb9c856a1b70f5948e27759b4f881316e905129"
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
-      "id": "file:agent/mock_graph.py",
+      "id": "file:src/hackfront/agent/__init__.py",
       "type": "file",
-      "label": "agent/mock_graph.py",
-      "path": "agent/mock_graph.py",
+      "label": "src/hackfront/agent/__init__.py",
+      "path": "src/hackfront/agent/__init__.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "6eae57755a05b1e0e8463be8dbb9a5baf524459b75609e60cb4a5186ea4778ce"
+      "contentHash": "549e78f33eb304185bd467b1de70cbe2a5f1fa609783eb57ce1f2e937e3fc1b9"
     },
     {
-      "id": "file:agent/prompts.py",
+      "id": "file:src/hackfront/agent/flow.py",
       "type": "file",
-      "label": "agent/prompts.py",
-      "path": "agent/prompts.py",
+      "label": "src/hackfront/agent/flow.py",
+      "path": "src/hackfront/agent/flow.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "4edbe959e3cecc5012e7d333c6181a3c3ba4d55f8aa731115104f4a4afc2008f"
+      "contentHash": "07fe4067cd17397a234799408514f5edc3be2aef089b57e10836f7463c0a8ce9"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/contracts/__init__.py",
+      "id": "file:src/hackfront/agent/harness.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/contracts/__init__.py",
-      "path": "ingestion/src/engineering_memory_ingestion/contracts/__init__.py",
+      "label": "src/hackfront/agent/harness.py",
+      "path": "src/hackfront/agent/harness.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "2a2518c3c9cc57c292d1b4a55d5594a9f81f834a2f484ee60605bbaaba1d7d8c"
+    },
+    {
+      "id": "file:src/hackfront/agent/llm.py",
+      "type": "file",
+      "label": "src/hackfront/agent/llm.py",
+      "path": "src/hackfront/agent/llm.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "4f7af191824010abf57171eea29cbde6d64b15ec5a1bb7497c65358843ed661d"
+    },
+    {
+      "id": "file:src/hackfront/agent/prompts.py",
+      "type": "file",
+      "label": "src/hackfront/agent/prompts.py",
+      "path": "src/hackfront/agent/prompts.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "008fcdb70a1f66398d9dc5947a9ef559e3207436caa66169c481cef5c6dfbd81"
+    },
+    {
+      "id": "file:src/hackfront/agent/text2cypher.py",
+      "type": "file",
+      "label": "src/hackfront/agent/text2cypher.py",
+      "path": "src/hackfront/agent/text2cypher.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "ee60d473225f970b71fac016d908ac83f9cb9d3524b270efcb763218559674d2"
+    },
+    {
+      "id": "file:src/hackfront/agent/verify.py",
+      "type": "file",
+      "label": "src/hackfront/agent/verify.py",
+      "path": "src/hackfront/agent/verify.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "a0339d3bcd164a33004ded8310238e99c3929cf7f7a56bda014f84e63658cb6e"
+    },
+    {
+      "id": "file:src/hackfront/api/__init__.py",
+      "type": "file",
+      "label": "src/hackfront/api/__init__.py",
+      "path": "src/hackfront/api/__init__.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "03551d13b0a3cecb850e074ee2a22ae482bf5c21e1eecb05f5d5474002d83373"
+    },
+    {
+      "id": "file:src/hackfront/api/app.py",
+      "type": "file",
+      "label": "src/hackfront/api/app.py",
+      "path": "src/hackfront/api/app.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "7838881bce7100fb55cc84a89dccd2fbc3ceadae1906ac4b481e233177dde84f"
+    },
+    {
+      "id": "file:src/hackfront/cli.py",
+      "type": "file",
+      "label": "src/hackfront/cli.py",
+      "path": "src/hackfront/cli.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "4537682b2a07e0bff09bd224b5319d58b56347143087fd48e5d5b88a854e34b5"
+    },
+    {
+      "id": "file:src/hackfront/config.py",
+      "type": "file",
+      "label": "src/hackfront/config.py",
+      "path": "src/hackfront/config.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "71da3171066af8b62296e8cf0b7ca42a452acdd72233d6ab91bcfd5d4ee5a650"
+    },
+    {
+      "id": "file:src/hackfront/ingest/contracts/__init__.py",
+      "type": "file",
+      "label": "src/hackfront/ingest/contracts/__init__.py",
+      "path": "src/hackfront/ingest/contracts/__init__.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
       "contentHash": "77e5b3e42547c19a8000528617c3e64e504d8f9f9916c3ab1990a2d9b245395a"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/contracts/records.py",
+      "id": "file:src/hackfront/ingest/contracts/records.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/contracts/records.py",
-      "path": "ingestion/src/engineering_memory_ingestion/contracts/records.py",
+      "label": "src/hackfront/ingest/contracts/records.py",
+      "path": "src/hackfront/ingest/contracts/records.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "dd47439d8e75ad877f8ae3b246025ed4368018f0c961a8a8754293b2179974e2"
+      "contentHash": "76056286269461f48d590d29622568254c5c386ea924bf13da88a6ab6fecb439"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/contracts/versions.py",
+      "id": "file:src/hackfront/ingest/contracts/versions.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/contracts/versions.py",
-      "path": "ingestion/src/engineering_memory_ingestion/contracts/versions.py",
+      "label": "src/hackfront/ingest/contracts/versions.py",
+      "path": "src/hackfront/ingest/contracts/versions.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
       "contentHash": "8656345bd9c7c6305e12b268f77e49f94274272ab22f97a1cbb55c022dd8c687"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/core/__init__.py",
+      "id": "file:src/hackfront/ingest/core/__init__.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/core/__init__.py",
-      "path": "ingestion/src/engineering_memory_ingestion/core/__init__.py",
+      "label": "src/hackfront/ingest/core/__init__.py",
+      "path": "src/hackfront/ingest/core/__init__.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
       "contentHash": "750b62ff5798e474fa05080b062fd705b1d83849db3c3d672f2c427a16e57021"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/core/runner.py",
+      "id": "file:src/hackfront/ingest/core/runner.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/core/runner.py",
-      "path": "ingestion/src/engineering_memory_ingestion/core/runner.py",
+      "label": "src/hackfront/ingest/core/runner.py",
+      "path": "src/hackfront/ingest/core/runner.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
       "contentHash": "81438e9d547cdb6814cc8c089eaf93211e899c01be4fba06ec400bd655239be3"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/extraction/__init__.py",
+      "id": "file:src/hackfront/ingest/demo/__init__.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/extraction/__init__.py",
-      "path": "ingestion/src/engineering_memory_ingestion/extraction/__init__.py",
+      "label": "src/hackfront/ingest/demo/__init__.py",
+      "path": "src/hackfront/ingest/demo/__init__.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "46b3cdf653e815448a7b8a8b2cfa936c6e2fb594bae81708be8fcfbffce7e630"
+    },
+    {
+      "id": "file:src/hackfront/ingest/demo/data.py",
+      "type": "file",
+      "label": "src/hackfront/ingest/demo/data.py",
+      "path": "src/hackfront/ingest/demo/data.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "b87506c73ecf8875a6eeb231cc14db4b62ab89a10e793c5286905da6838c704f"
+    },
+    {
+      "id": "file:src/hackfront/ingest/extraction/__init__.py",
+      "type": "file",
+      "label": "src/hackfront/ingest/extraction/__init__.py",
+      "path": "src/hackfront/ingest/extraction/__init__.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
       "contentHash": "eb94a4938232060d2684d508eb2435949925fc0faa5321e5a2b1448dbfea82e6"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/extraction/deterministic.py",
+      "id": "file:src/hackfront/ingest/extraction/deterministic.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/extraction/deterministic.py",
-      "path": "ingestion/src/engineering_memory_ingestion/extraction/deterministic.py",
+      "label": "src/hackfront/ingest/extraction/deterministic.py",
+      "path": "src/hackfront/ingest/extraction/deterministic.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
       "contentHash": "bb493c337a8bbe6f30c4b0397757152a0fe0f918d0295e31fdb15b0b656b5cf7"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/observability/__init__.py",
+      "id": "file:src/hackfront/ingest/extraction/links.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/observability/__init__.py",
-      "path": "ingestion/src/engineering_memory_ingestion/observability/__init__.py",
+      "label": "src/hackfront/ingest/extraction/links.py",
+      "path": "src/hackfront/ingest/extraction/links.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "f727e512acde0d5857b857d2dc4cce852f7233295f7ad854802e75b8a76f20e0"
+    },
+    {
+      "id": "file:src/hackfront/ingest/observability/__init__.py",
+      "type": "file",
+      "label": "src/hackfront/ingest/observability/__init__.py",
+      "path": "src/hackfront/ingest/observability/__init__.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
       "contentHash": "3f48b704e93547fb41df2ee9670bf416efa4de7455c7e1f3706b071aa46820e7"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/observability/run_summary.py",
+      "id": "file:src/hackfront/ingest/observability/run_summary.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/observability/run_summary.py",
-      "path": "ingestion/src/engineering_memory_ingestion/observability/run_summary.py",
+      "label": "src/hackfront/ingest/observability/run_summary.py",
+      "path": "src/hackfront/ingest/observability/run_summary.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
       "contentHash": "f2c016973d56cef48dd9fb853400622271aa8eeb73e09eb093508dbf442326c2"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/sources/github/__init__.py",
+      "id": "file:src/hackfront/ingest/sources/github/__init__.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/sources/github/__init__.py",
-      "path": "ingestion/src/engineering_memory_ingestion/sources/github/__init__.py",
+      "label": "src/hackfront/ingest/sources/github/__init__.py",
+      "path": "src/hackfront/ingest/sources/github/__init__.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
       "contentHash": "76380a3b2b2bcfbc3ad98f54c8316cfed144c2d226c7638b534be5c50ab53482"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/sources/github/adapter.py",
+      "id": "file:src/hackfront/ingest/sources/github/adapter.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/sources/github/adapter.py",
-      "path": "ingestion/src/engineering_memory_ingestion/sources/github/adapter.py",
+      "label": "src/hackfront/ingest/sources/github/adapter.py",
+      "path": "src/hackfront/ingest/sources/github/adapter.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "7355c61882cff301e961ac24fd9b4f64f96d48c708386336ec6bffe76cf8458a"
+      "contentHash": "718d56d710b5e2ae116345478c47efb0626226fb2a485807c2126df30d588b03"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/sources/github/client.py",
+      "id": "file:src/hackfront/ingest/sources/github/client.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/sources/github/client.py",
-      "path": "ingestion/src/engineering_memory_ingestion/sources/github/client.py",
+      "label": "src/hackfront/ingest/sources/github/client.py",
+      "path": "src/hackfront/ingest/sources/github/client.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "f518377a564d67c2d265d09e466d0e7b5e778e28c161a75322a928ad8a0fdcec"
+      "contentHash": "b2afc0351000407538c6eba34da7a161d3b44ba43d96bbc5df79ff670c8b75bd"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/sources/github/mapper.py",
+      "id": "file:src/hackfront/ingest/sources/github/mapper.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/sources/github/mapper.py",
-      "path": "ingestion/src/engineering_memory_ingestion/sources/github/mapper.py",
+      "label": "src/hackfront/ingest/sources/github/mapper.py",
+      "path": "src/hackfront/ingest/sources/github/mapper.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
       "contentHash": "28209bb7a5f3ec877c64609461f470774bea2973c2dd667f199100b77cde0f90"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/sources/jira/__init__.py",
+      "id": "file:src/hackfront/ingest/sources/jira/__init__.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/sources/jira/__init__.py",
-      "path": "ingestion/src/engineering_memory_ingestion/sources/jira/__init__.py",
+      "label": "src/hackfront/ingest/sources/jira/__init__.py",
+      "path": "src/hackfront/ingest/sources/jira/__init__.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
       "contentHash": "b616594f46c879d4a4b038c37e55bbe9e89fffc45b6e5181cf314635d9c7b396"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/sources/jira/adapter.py",
+      "id": "file:src/hackfront/ingest/sources/jira/adapter.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/sources/jira/adapter.py",
-      "path": "ingestion/src/engineering_memory_ingestion/sources/jira/adapter.py",
+      "label": "src/hackfront/ingest/sources/jira/adapter.py",
+      "path": "src/hackfront/ingest/sources/jira/adapter.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "13dddeb668049953637085b6170fa4c7bb2d967eeaf680df457a1169a12d33d7"
+      "contentHash": "e7eccafe6418e37f0497725afdd567d605ccc962ee6403df5e44764f99d9586e"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/sources/jira/client.py",
+      "id": "file:src/hackfront/ingest/sources/jira/client.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/sources/jira/client.py",
-      "path": "ingestion/src/engineering_memory_ingestion/sources/jira/client.py",
+      "label": "src/hackfront/ingest/sources/jira/client.py",
+      "path": "src/hackfront/ingest/sources/jira/client.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "070ca1bb1def88e549713a33d8bb09e5917af86c52e68ceaf46fe4d5f9abccc7"
+      "contentHash": "9f60bdfcc8c3fe6e527e7c611a7f0b9c0b4e2e698e4d3033ff29e9f0cc2961c0"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/sources/jira/mapper.py",
+      "id": "file:src/hackfront/ingest/sources/jira/mapper.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/sources/jira/mapper.py",
-      "path": "ingestion/src/engineering_memory_ingestion/sources/jira/mapper.py",
+      "label": "src/hackfront/ingest/sources/jira/mapper.py",
+      "path": "src/hackfront/ingest/sources/jira/mapper.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "d3817e5dbea1c85ee9c33bcd7ca8c15a771a702a33fb63a1bde452bcd8d8467c"
+      "contentHash": "a425268cd28a28122679de468b0d8afa761690b88d7f25bb409f2cd74c77ec3e"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/sources/slack/__init__.py",
+      "id": "file:src/hackfront/ingest/sources/slack/__init__.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/sources/slack/__init__.py",
-      "path": "ingestion/src/engineering_memory_ingestion/sources/slack/__init__.py",
+      "label": "src/hackfront/ingest/sources/slack/__init__.py",
+      "path": "src/hackfront/ingest/sources/slack/__init__.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
       "contentHash": "efe509bf8515d6eeaeaac92439c3352aac65923b71287d3bb02d53a50d80a43a"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/sources/slack/adapter.py",
+      "id": "file:src/hackfront/ingest/sources/slack/adapter.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/sources/slack/adapter.py",
-      "path": "ingestion/src/engineering_memory_ingestion/sources/slack/adapter.py",
+      "label": "src/hackfront/ingest/sources/slack/adapter.py",
+      "path": "src/hackfront/ingest/sources/slack/adapter.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "0b0d9013c94fa05301d7da94286940007d19254d927d2050bff0e6f81687055f"
+      "contentHash": "ae7ea43611bd954f5a374c088a1ff3d5a57052102ce66027dd16a1b9ac0f8aa2"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/sources/slack/client.py",
+      "id": "file:src/hackfront/ingest/sources/slack/client.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/sources/slack/client.py",
-      "path": "ingestion/src/engineering_memory_ingestion/sources/slack/client.py",
+      "label": "src/hackfront/ingest/sources/slack/client.py",
+      "path": "src/hackfront/ingest/sources/slack/client.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "20e3587a045e219485a5dc6f4576230ce7fc3df7c5dc5be9b9635c213d885c3f"
+      "contentHash": "ab5d426478a84b1226ef79dc9d6cf9b7d320a8a17f5327f2768b6158170c62f0"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/sources/slack/mapper.py",
+      "id": "file:src/hackfront/ingest/sources/slack/mapper.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/sources/slack/mapper.py",
-      "path": "ingestion/src/engineering_memory_ingestion/sources/slack/mapper.py",
+      "label": "src/hackfront/ingest/sources/slack/mapper.py",
+      "path": "src/hackfront/ingest/sources/slack/mapper.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "5f1667bd2b84aede28bf0c89b335fa744b0268b15504601da51aafd8b98352ac"
+      "contentHash": "fb80e77424be62e58e35f85e4df2170f0c68452f51ea7df12952ed14c5ca67a0"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/storage/neo4j/__init__.py",
+      "id": "file:src/hackfront/ingest/storage/neo4j/__init__.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/storage/neo4j/__init__.py",
-      "path": "ingestion/src/engineering_memory_ingestion/storage/neo4j/__init__.py",
+      "label": "src/hackfront/ingest/storage/neo4j/__init__.py",
+      "path": "src/hackfront/ingest/storage/neo4j/__init__.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
       "contentHash": "ac93b93a36487611705045420fc9e9b61457d4b58a8f6ea614de16d0a8f5c72b"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/storage/neo4j/schema.py",
+      "id": "file:src/hackfront/ingest/storage/neo4j/schema.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/storage/neo4j/schema.py",
-      "path": "ingestion/src/engineering_memory_ingestion/storage/neo4j/schema.py",
+      "label": "src/hackfront/ingest/storage/neo4j/schema.py",
+      "path": "src/hackfront/ingest/storage/neo4j/schema.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
       "contentHash": "92505592d760837bb8eea4ad2c43e50ab4de060cd948e18ccd431ab162473c1f"
     },
     {
-      "id": "file:ingestion/src/engineering_memory_ingestion/storage/neo4j/writer.py",
+      "id": "file:src/hackfront/ingest/storage/neo4j/writer.py",
       "type": "file",
-      "label": "ingestion/src/engineering_memory_ingestion/storage/neo4j/writer.py",
-      "path": "ingestion/src/engineering_memory_ingestion/storage/neo4j/writer.py",
+      "label": "src/hackfront/ingest/storage/neo4j/writer.py",
+      "path": "src/hackfront/ingest/storage/neo4j/writer.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "f5056ba8d40c19e9ba22c6a3d67679d8441950508101804d4441fc4444b6ba91"
+      "contentHash": "88d872f595e60b9a5e520edecfa854d47c95d3a2b96482b764303f9acba6dfc3"
     },
     {
-      "id": "file:ingestion/tests/__init__.py",
+      "id": "file:src/hackfront/ingest/sync.py",
       "type": "file",
-      "label": "ingestion/tests/__init__.py",
-      "path": "ingestion/tests/__init__.py",
+      "label": "src/hackfront/ingest/sync.py",
+      "path": "src/hackfront/ingest/sync.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "daf4f6b178f9320176586aac649312ac525519b9d33b3e79901fb3fc75922a94"
+    },
+    {
+      "id": "file:tests/__init__.py",
+      "type": "file",
+      "label": "tests/__init__.py",
+      "path": "tests/__init__.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "file:tests/agent/__init__.py",
+      "type": "file",
+      "label": "tests/agent/__init__.py",
+      "path": "tests/agent/__init__.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "file:tests/agent/unit/__init__.py",
+      "type": "file",
+      "label": "tests/agent/unit/__init__.py",
+      "path": "tests/agent/unit/__init__.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "file:tests/agent/unit/conftest.py",
+      "type": "file",
+      "label": "tests/agent/unit/conftest.py",
+      "path": "tests/agent/unit/conftest.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "e9abfbe73ae75a0063d133df359ee368cddf75255ea09c7271bc5142e6d1ba29"
+    },
+    {
+      "id": "file:tests/agent/unit/test_flow.py",
+      "type": "file",
+      "label": "tests/agent/unit/test_flow.py",
+      "path": "tests/agent/unit/test_flow.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "f969721119b08b42277a28b05bd421f3bcbb2eec1b02c169861810e89423955b"
+    },
+    {
+      "id": "file:tests/agent/unit/test_harness.py",
+      "type": "file",
+      "label": "tests/agent/unit/test_harness.py",
+      "path": "tests/agent/unit/test_harness.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "d4c396bbcc01c54f78768d4b6df23b562f4265c1fa07a4c20e0a7ec4960c2fda"
+    },
+    {
+      "id": "file:tests/agent/unit/test_llm_verify.py",
+      "type": "file",
+      "label": "tests/agent/unit/test_llm_verify.py",
+      "path": "tests/agent/unit/test_llm_verify.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "77a674b51f87d03b60ca2797b0eda18ce96be32e9ba616349da577d924edd541"
+    },
+    {
+      "id": "file:tests/agent/unit/test_text2cypher.py",
+      "type": "file",
+      "label": "tests/agent/unit/test_text2cypher.py",
+      "path": "tests/agent/unit/test_text2cypher.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "4d65bfc05ddf4f5f811921b4d3ec562b8d53281718b344b73f820cd44c11b6c0"
+    },
+    {
+      "id": "file:tests/api/test_api.py",
+      "type": "file",
+      "label": "tests/api/test_api.py",
+      "path": "tests/api/test_api.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "146ea8a389074907da6544af575a339cc3de84f95460e3fc1b026f4fc1235a58"
+    },
+    {
+      "id": "file:tests/conftest.py",
+      "type": "file",
+      "label": "tests/conftest.py",
+      "path": "tests/conftest.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "d784d6888011a37946c92f208fe46b1ca4fb2bfec584d0aecd0fa70c35b67ebf"
+    },
+    {
+      "id": "file:tests/e2e/test_cases.py",
+      "type": "file",
+      "label": "tests/e2e/test_cases.py",
+      "path": "tests/e2e/test_cases.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "014f8c74e3a030a7a2fcb392a04f9eed5092be78acc8bec2d4c0c41105edd9f2"
+    },
+    {
+      "id": "file:tests/ingest/__init__.py",
+      "type": "file",
+      "label": "tests/ingest/__init__.py",
+      "path": "tests/ingest/__init__.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
       "contentHash": "c7267239b6b5fa31c66506c8655c047551578111db5d8dd1907aa96065c8dfde"
     },
     {
-      "id": "file:ingestion/tests/integration/test_neo4j_store.py",
+      "id": "file:tests/ingest/integration/test_demo_sync.py",
       "type": "file",
-      "label": "ingestion/tests/integration/test_neo4j_store.py",
-      "path": "ingestion/tests/integration/test_neo4j_store.py",
+      "label": "tests/ingest/integration/test_demo_sync.py",
+      "path": "tests/ingest/integration/test_demo_sync.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "f2d18ecc5f85eb9336eb8261bd588e1f2547d83bcd853008f79fb5cb5f64886b"
+      "contentHash": "9c9ca9753f4c5058202d28a4070f4a6565c75be18e14a7127c3e575a03dd2e6e"
     },
     {
-      "id": "file:ingestion/tests/unit/__init__.py",
+      "id": "file:tests/ingest/integration/test_neo4j_store.py",
       "type": "file",
-      "label": "ingestion/tests/unit/__init__.py",
-      "path": "ingestion/tests/unit/__init__.py",
+      "label": "tests/ingest/integration/test_neo4j_store.py",
+      "path": "tests/ingest/integration/test_neo4j_store.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "5fbdb1e2c0bd144cb4e7c0cf29abc71f7048535089722fec57c33439d98b4cac"
+      "contentHash": "95132eaad89efeb56063a7ea7bfe24ad7eaa871446c17f6844e7e53c08adccc0"
     },
     {
-      "id": "file:ingestion/tests/unit/test_contracts.py",
+      "id": "file:tests/ingest/unit/__init__.py",
       "type": "file",
-      "label": "ingestion/tests/unit/test_contracts.py",
-      "path": "ingestion/tests/unit/test_contracts.py",
+      "label": "tests/ingest/unit/__init__.py",
+      "path": "tests/ingest/unit/__init__.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "7d33d794851f8f88639fe37e680af05738abe00692ac8adc3e9cfd894d780f6e"
+      "contentHash": "51d44aa9738027e233a8a4b4b3a1ede3b94169600d36403c35391f5cea6224d7"
     },
     {
-      "id": "file:ingestion/tests/unit/test_deterministic_extraction.py",
+      "id": "file:tests/ingest/unit/test_contracts.py",
       "type": "file",
-      "label": "ingestion/tests/unit/test_deterministic_extraction.py",
-      "path": "ingestion/tests/unit/test_deterministic_extraction.py",
+      "label": "tests/ingest/unit/test_contracts.py",
+      "path": "tests/ingest/unit/test_contracts.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "d71320ace564e59eabf96ddd10574c0cffd2e2830e9da9bf5c133fd398f0ed5d"
+      "contentHash": "8a5a9d82c8ba16d5b508fd0a81557fcefdc495e8c2f95d19f6defc7cbd48ae45"
     },
     {
-      "id": "file:ingestion/tests/unit/test_github_adapter.py",
+      "id": "file:tests/ingest/unit/test_deterministic_extraction.py",
       "type": "file",
-      "label": "ingestion/tests/unit/test_github_adapter.py",
-      "path": "ingestion/tests/unit/test_github_adapter.py",
+      "label": "tests/ingest/unit/test_deterministic_extraction.py",
+      "path": "tests/ingest/unit/test_deterministic_extraction.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "73101c62de0ff64f7a8a1675bc9baac6165f7bfa1c336c5052c6ca7826b346ab"
+      "contentHash": "1bb45af65d344f06c50f0cd89e490e9f7fac4016a96d8729e32a0b84bddf5246"
     },
     {
-      "id": "file:ingestion/tests/unit/test_jira_adapter.py",
+      "id": "file:tests/ingest/unit/test_github_adapter.py",
       "type": "file",
-      "label": "ingestion/tests/unit/test_jira_adapter.py",
-      "path": "ingestion/tests/unit/test_jira_adapter.py",
+      "label": "tests/ingest/unit/test_github_adapter.py",
+      "path": "tests/ingest/unit/test_github_adapter.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "09f4737c67cddd1c2d428e8d47b5d61b747098621e5cef1fd316399bdf2296cb"
+      "contentHash": "1a2e417a82a1b8c2cf40048e4ceb7fd2877c36c33c8569d6ee58312f417f9467"
     },
     {
-      "id": "file:ingestion/tests/unit/test_native_fixtures.py",
+      "id": "file:tests/ingest/unit/test_jira_adapter.py",
       "type": "file",
-      "label": "ingestion/tests/unit/test_native_fixtures.py",
-      "path": "ingestion/tests/unit/test_native_fixtures.py",
+      "label": "tests/ingest/unit/test_jira_adapter.py",
+      "path": "tests/ingest/unit/test_jira_adapter.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "83ec01f87948e2a706a08c133cf75cebb25ca96676d3b99889c47c6e904c20a7"
+      "contentHash": "a0d948d7056e50cd0dc06d075f0abe28177b1ffb5fc93a7ce7cdc7fcf490266a"
     },
     {
-      "id": "file:ingestion/tests/unit/test_pipeline.py",
+      "id": "file:tests/ingest/unit/test_links.py",
       "type": "file",
-      "label": "ingestion/tests/unit/test_pipeline.py",
-      "path": "ingestion/tests/unit/test_pipeline.py",
+      "label": "tests/ingest/unit/test_links.py",
+      "path": "tests/ingest/unit/test_links.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "c3ffc2348d7a0735ef66b6e1e148bd7ac066de0f91a4f26decb4e5fd17400750"
+      "contentHash": "de53bdb64407fb1f205068719280368d3bbdf9cf9d41e71043a6aa2f7aadeb82"
     },
     {
-      "id": "file:ingestion/tests/unit/test_slack_adapter.py",
+      "id": "file:tests/ingest/unit/test_native_fixtures.py",
       "type": "file",
-      "label": "ingestion/tests/unit/test_slack_adapter.py",
-      "path": "ingestion/tests/unit/test_slack_adapter.py",
+      "label": "tests/ingest/unit/test_native_fixtures.py",
+      "path": "tests/ingest/unit/test_native_fixtures.py",
       "language": "python",
       "confidence": 1,
       "extractor": "filesystem",
-      "contentHash": "dbf0b2a3cc0c886b12d5d0578d67dc90e05c4b0ea65558c33c6522d525dade5a"
+      "contentHash": "ba013ac48433d80d4a066d253de1933ba2eeff040c13145c95886cd4f72c5c73"
+    },
+    {
+      "id": "file:tests/ingest/unit/test_pipeline.py",
+      "type": "file",
+      "label": "tests/ingest/unit/test_pipeline.py",
+      "path": "tests/ingest/unit/test_pipeline.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "bf0e86059e13230c814474f4a52b0ae250a4690eead60c3ebd07938a1c0ea7c1"
+    },
+    {
+      "id": "file:tests/ingest/unit/test_slack_adapter.py",
+      "type": "file",
+      "label": "tests/ingest/unit/test_slack_adapter.py",
+      "path": "tests/ingest/unit/test_slack_adapter.py",
+      "language": "python",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "30746aa0a16faa1b65fb0709b10bb00190ebec464393a1c9e33dd2375de8891c"
+    },
+    {
+      "id": "file:web/app.js",
+      "type": "file",
+      "label": "web/app.js",
+      "path": "web/app.js",
+      "language": "javascript",
+      "confidence": 1,
+      "extractor": "filesystem",
+      "contentHash": "590c2539c6e353b0258f33f4611b43a2c04c378c9b5ed01f08f303b2e6b0d451"
+    },
+    {
+      "id": "symbol:web/app.js#function:$",
+      "type": "symbol",
+      "kind": "function",
+      "name": "$",
+      "label": "$",
+      "path": "web/app.js",
+      "line": 3,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "e3a706e65968f389c5614133f54ee0d2332abe3c52ea3d4b89f1b10958bc330b"
+    },
+    {
+      "id": "symbol:web/app.js#function:addTrace",
+      "type": "symbol",
+      "kind": "function",
+      "name": "addTrace",
+      "label": "addTrace",
+      "path": "web/app.js",
+      "line": 146,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "0664f72721dfd3b8af12b87b007129fe50475349d45101e2be958c555c09dbb9"
+    },
+    {
+      "id": "symbol:web/app.js#function:api",
+      "type": "symbol",
+      "kind": "function",
+      "name": "api",
+      "label": "api",
+      "path": "web/app.js",
+      "line": 22,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "c1e02d202f7286ce9614785a24643b156a8b618e3caa7830b3e7783022a9615a"
+    },
+    {
+      "id": "symbol:web/app.js#function:ask",
+      "type": "symbol",
+      "kind": "function",
+      "name": "ask",
+      "label": "ask",
+      "path": "web/app.js",
+      "line": 153,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "c5ecab8b19d70cc434ef8584b16536c12f790a8581086875df9e534fb7def8b0"
+    },
+    {
+      "id": "symbol:web/app.js#function:citedText",
+      "type": "symbol",
+      "kind": "function",
+      "name": "citedText",
+      "label": "citedText",
+      "path": "web/app.js",
+      "line": 197,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "b6f60a3259e1c8121bca9465edf880675489f7b83809f24fa206041c9251089e"
+    },
+    {
+      "id": "symbol:web/app.js#function:clip",
+      "type": "symbol",
+      "kind": "function",
+      "name": "clip",
+      "label": "clip",
+      "path": "web/app.js",
+      "line": 20,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "6a89353857b487ee2ce8c377a9971accf2680bc419cc6a8a865874e5397e4f30"
+    },
+    {
+      "id": "symbol:web/app.js#function:drawGraph",
+      "type": "symbol",
+      "kind": "function",
+      "name": "drawGraph",
+      "label": "drawGraph",
+      "path": "web/app.js",
+      "line": 270,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "70da158ab6a0abd95677b716e6b9b3f71dd659477a5ac44b1f8298b14054e0af"
+    },
+    {
+      "id": "symbol:web/app.js#function:el",
+      "type": "symbol",
+      "kind": "function",
+      "name": "el",
+      "label": "el",
+      "path": "web/app.js",
+      "line": 6,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "b5ab5b27b3c3af8faddc61076d4b2514b57274e5ddd59cf9d8086ef3fc492ebc"
+    },
+    {
+      "id": "symbol:web/app.js#function:F",
+      "type": "symbol",
+      "kind": "function",
+      "name": "F",
+      "label": "F",
+      "path": "web/app.js",
+      "line": 61,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "e1d6899e0745025ee136b12236b36e8a0058542721cbf059b97fb0db74a952c1"
+    },
+    {
+      "id": "symbol:web/app.js#function:highlight",
+      "type": "symbol",
+      "kind": "function",
+      "name": "highlight",
+      "label": "highlight",
+      "path": "web/app.js",
+      "line": 241,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "700758e5424172cfa6f33721700c9ee5804cb7c59a94a3836edca50ad6086ec1"
+    },
+    {
+      "id": "symbol:web/app.js#function:kindOf",
+      "type": "symbol",
+      "kind": "function",
+      "name": "kindOf",
+      "label": "kindOf",
+      "path": "web/app.js",
+      "line": 232,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "6033af4e17a3effdf354e9949c7c3d6c8ec571429fa8399fe4e68b264d3d6384"
+    },
+    {
+      "id": "symbol:web/app.js#function:label",
+      "type": "symbol",
+      "kind": "function",
+      "name": "label",
+      "label": "label",
+      "path": "web/app.js",
+      "line": 239,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "942fb01efb179532c62ec58d3d49862b47376c1a04ea265a8aede2355edc1669"
+    },
+    {
+      "id": "symbol:web/app.js#function:list",
+      "type": "symbol",
+      "kind": "function",
+      "name": "list",
+      "label": "list",
+      "path": "web/app.js",
+      "line": 19,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "c45754af1e51a213d8a21d410a1527626076654d966227b0d84c0a5e833b2a70"
+    },
+    {
+      "id": "symbol:web/app.js#function:loadStatus",
+      "type": "symbol",
+      "kind": "function",
+      "name": "loadStatus",
+      "label": "loadStatus",
+      "path": "web/app.js",
+      "line": 33,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "7da41b1feb01cf7613ba55d6b7a27c978e212f77040716e437da3db51241e398"
+    },
+    {
+      "id": "symbol:web/app.js#function:loadWorkspace",
+      "type": "symbol",
+      "kind": "function",
+      "name": "loadWorkspace",
+      "label": "loadWorkspace",
+      "path": "web/app.js",
+      "line": 62,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "669de01ccc8c1e223804e3ebfc8599123e0f184ec056606dabca28e031d3808c"
+    },
+    {
+      "id": "symbol:web/app.js#function:renderAnswer",
+      "type": "symbol",
+      "kind": "function",
+      "name": "renderAnswer",
+      "label": "renderAnswer",
+      "path": "web/app.js",
+      "line": 210,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "3ef55c4268076bc2321f258a5f9d01b8c64e95f0c7450deeea65c4360cc353db"
+    },
+    {
+      "id": "symbol:web/app.js#function:renderEvidence",
+      "type": "symbol",
+      "kind": "function",
+      "name": "renderEvidence",
+      "label": "renderEvidence",
+      "path": "web/app.js",
+      "line": 248,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "b12c304389c8b901afe71522ab30e27a1380cf208057c5b3afd3375eb30f640e"
+    },
+    {
+      "id": "symbol:web/app.js#function:runSync",
+      "type": "symbol",
+      "kind": "function",
+      "name": "runSync",
+      "label": "runSync",
+      "path": "web/app.js",
+      "line": 101,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "480e1598070d43d7a381588b476d49153c29defd5bf8d8f85ded8aedda2063a0"
+    },
+    {
+      "id": "symbol:web/app.js#function:safeUrl",
+      "type": "symbol",
+      "kind": "function",
+      "name": "safeUrl",
+      "label": "safeUrl",
+      "path": "web/app.js",
+      "line": 18,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "8460f163a29227aac428428954fa6a519f58fe64d78e2d0d074729b1f83ab00a"
+    },
+    {
+      "id": "symbol:web/app.js#function:setMode",
+      "type": "symbol",
+      "kind": "function",
+      "name": "setMode",
+      "label": "setMode",
+      "path": "web/app.js",
+      "line": 125,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "836df69782052b54f0d1a247730e790579084fd73d012f53f2a1096d73cb6019"
+    },
+    {
+      "id": "symbol:web/app.js#function:setMsg",
+      "type": "symbol",
+      "kind": "function",
+      "name": "setMsg",
+      "label": "setMsg",
+      "path": "web/app.js",
+      "line": 70,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "75afb9fffa3f1f8378ec4c60096abe261c90eeffbbd52a435a8fd0e7a6fb5677"
+    },
+    {
+      "id": "symbol:web/app.js#function:showError",
+      "type": "symbol",
+      "kind": "function",
+      "name": "showError",
+      "label": "showError",
+      "path": "web/app.js",
+      "line": 149,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "207f6553877bc15c6ffcbb0c0c9a2cee3f54983873946274ec495b8187e5d659"
+    },
+    {
+      "id": "symbol:web/app.js#function:showRuns",
+      "type": "symbol",
+      "kind": "function",
+      "name": "showRuns",
+      "label": "showRuns",
+      "path": "web/app.js",
+      "line": 89,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "c14c7935ab89099c8651ca5450f5780dd4d2cfd9e2a7921b3a36e6b84eb30d23"
+    },
+    {
+      "id": "symbol:web/app.js#function:summarize",
+      "type": "symbol",
+      "kind": "function",
+      "name": "summarize",
+      "label": "summarize",
+      "path": "web/app.js",
+      "line": 141,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "e6393724322eae2440d549c3da902954831d60264c5edcc5c15ebd7ca137f33f"
+    },
+    {
+      "id": "symbol:web/app.js#function:svg",
+      "type": "symbol",
+      "kind": "function",
+      "name": "svg",
+      "label": "svg",
+      "path": "web/app.js",
+      "line": 12,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "7301df407d34b72541e54c249c8de15bb572e6e26e9dd59d671f5ccc35a66b11"
+    },
+    {
+      "id": "symbol:web/app.js#variable:asking",
+      "type": "symbol",
+      "kind": "variable",
+      "name": "asking",
+      "label": "asking",
+      "path": "web/app.js",
+      "line": 140,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "048e6e15b131e68c7239fd7144933177800f3cebeaa36e1ba2bc538b25d667ea"
+    },
+    {
+      "id": "symbol:web/app.js#variable:hlId",
+      "type": "symbol",
+      "kind": "variable",
+      "name": "hlId",
+      "label": "hlId",
+      "path": "web/app.js",
+      "line": 240,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "311c6ddd3b3a151de4b97170d280e0cdaba0aeab21606640c8d65309c146fecc"
+    },
+    {
+      "id": "symbol:web/app.js#variable:KINDS",
+      "type": "symbol",
+      "kind": "variable",
+      "name": "KINDS",
+      "label": "KINDS",
+      "path": "web/app.js",
+      "line": 231,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "84ae1a4f70ea570f6691aa8fe2a99a63fc49c325764c55f01f2d3024e7c75564"
+    },
+    {
+      "id": "symbol:web/app.js#variable:mode",
+      "type": "symbol",
+      "kind": "variable",
+      "name": "mode",
+      "label": "mode",
+      "path": "web/app.js",
+      "line": 124,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "392bd2d1a258b94c76e53c0ebc3b834fc3a3452abdb49e1cba4fd2e7b2231430"
+    },
+    {
+      "id": "symbol:web/app.js#variable:MODES",
+      "type": "symbol",
+      "kind": "variable",
+      "name": "MODES",
+      "label": "MODES",
+      "path": "web/app.js",
+      "line": 119,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "b0ec309b82317852028de81a7846252bbdc36d8400123aa1b2eed1fafe9aa63a"
+    },
+    {
+      "id": "symbol:web/app.js#variable:SOURCES",
+      "type": "symbol",
+      "kind": "variable",
+      "name": "SOURCES",
+      "label": "SOURCES",
+      "path": "web/app.js",
+      "line": 31,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "b1149f4c39f7374372a21377ffd7ad699db779776b146cc83a2af26ca258e4d3"
+    },
+    {
+      "id": "symbol:web/app.js#variable:SVGNS",
+      "type": "symbol",
+      "kind": "variable",
+      "name": "SVGNS",
+      "label": "SVGNS",
+      "path": "web/app.js",
+      "line": 4,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "f03ac715ef655cceaa36b67e25b549acd701cd68b661021887ff5ed8ab1af975"
+    },
+    {
+      "id": "symbol:web/app.js#variable:TRACE",
+      "type": "symbol",
+      "kind": "variable",
+      "name": "TRACE",
+      "label": "TRACE",
+      "path": "web/app.js",
+      "line": 118,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols",
+      "contentHash": "aabf28a98469d7aa74d1c63123a5e5d9517a90843376c0704b551192f021768a"
     }
   ],
-  "edges": [],
+  "edges": [
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:addTrace",
+      "target": "symbol:web/app.js#function:$",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:addTrace",
+      "target": "symbol:web/app.js#function:el",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:addTrace",
+      "target": "symbol:web/app.js#function:summarize",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:ask",
+      "target": "symbol:web/app.js#function:$",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:ask",
+      "target": "symbol:web/app.js#function:addTrace",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:ask",
+      "target": "symbol:web/app.js#function:renderAnswer",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:ask",
+      "target": "symbol:web/app.js#function:showError",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:citedText",
+      "target": "symbol:web/app.js#function:el",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:citedText",
+      "target": "symbol:web/app.js#function:safeUrl",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:drawGraph",
+      "target": "symbol:web/app.js#function:$",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:drawGraph",
+      "target": "symbol:web/app.js#function:clip",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:drawGraph",
+      "target": "symbol:web/app.js#function:highlight",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:drawGraph",
+      "target": "symbol:web/app.js#function:kindOf",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:drawGraph",
+      "target": "symbol:web/app.js#function:label",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:drawGraph",
+      "target": "symbol:web/app.js#function:loadStatus",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:drawGraph",
+      "target": "symbol:web/app.js#function:loadWorkspace",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:drawGraph",
+      "target": "symbol:web/app.js#function:setMode",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:drawGraph",
+      "target": "symbol:web/app.js#function:svg",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:F",
+      "target": "symbol:web/app.js#function:$",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:loadStatus",
+      "target": "symbol:web/app.js#function:$",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:loadStatus",
+      "target": "symbol:web/app.js#function:api",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:loadStatus",
+      "target": "symbol:web/app.js#function:el",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:loadWorkspace",
+      "target": "symbol:web/app.js#function:api",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:loadWorkspace",
+      "target": "symbol:web/app.js#function:F",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:loadWorkspace",
+      "target": "symbol:web/app.js#function:setMsg",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:renderAnswer",
+      "target": "symbol:web/app.js#function:$",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:renderAnswer",
+      "target": "symbol:web/app.js#function:citedText",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:renderAnswer",
+      "target": "symbol:web/app.js#function:clip",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:renderAnswer",
+      "target": "symbol:web/app.js#function:el",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:renderAnswer",
+      "target": "symbol:web/app.js#function:renderEvidence",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:renderEvidence",
+      "target": "symbol:web/app.js#function:$",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:renderEvidence",
+      "target": "symbol:web/app.js#function:clip",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:renderEvidence",
+      "target": "symbol:web/app.js#function:drawGraph",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:renderEvidence",
+      "target": "symbol:web/app.js#function:el",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:renderEvidence",
+      "target": "symbol:web/app.js#function:highlight",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:renderEvidence",
+      "target": "symbol:web/app.js#function:kindOf",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:renderEvidence",
+      "target": "symbol:web/app.js#function:label",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:renderEvidence",
+      "target": "symbol:web/app.js#function:safeUrl",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:runSync",
+      "target": "symbol:web/app.js#function:$",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:runSync",
+      "target": "symbol:web/app.js#function:api",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:runSync",
+      "target": "symbol:web/app.js#function:loadStatus",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:runSync",
+      "target": "symbol:web/app.js#function:setMsg",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:runSync",
+      "target": "symbol:web/app.js#function:showRuns",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:setMode",
+      "target": "symbol:web/app.js#function:$",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:setMode",
+      "target": "symbol:web/app.js#function:clip",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:setMode",
+      "target": "symbol:web/app.js#function:el",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:setMsg",
+      "target": "symbol:web/app.js#function:$",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:setMsg",
+      "target": "symbol:web/app.js#function:api",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:setMsg",
+      "target": "symbol:web/app.js#function:F",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:setMsg",
+      "target": "symbol:web/app.js#function:list",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:setMsg",
+      "target": "symbol:web/app.js#function:loadStatus",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:setMsg",
+      "target": "symbol:web/app.js#function:loadWorkspace",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:showError",
+      "target": "symbol:web/app.js#function:$",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:showError",
+      "target": "symbol:web/app.js#function:el",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:showRuns",
+      "target": "symbol:web/app.js#function:$",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:showRuns",
+      "target": "symbol:web/app.js#function:clip",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:showRuns",
+      "target": "symbol:web/app.js#function:el",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "calls",
+      "source": "symbol:web/app.js#function:summarize",
+      "target": "symbol:web/app.js#function:clip",
+      "tier": "proven",
+      "resolved": true,
+      "confidence": 0.75,
+      "extractor": "conservative-js-calls"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:$",
+      "line": 3,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:addTrace",
+      "line": 146,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:api",
+      "line": 22,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:ask",
+      "line": 153,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:citedText",
+      "line": 197,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:clip",
+      "line": 20,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:drawGraph",
+      "line": 270,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:el",
+      "line": 6,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:F",
+      "line": 61,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:highlight",
+      "line": 241,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:kindOf",
+      "line": 232,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:label",
+      "line": 239,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:list",
+      "line": 19,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:loadStatus",
+      "line": 33,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:loadWorkspace",
+      "line": 62,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:renderAnswer",
+      "line": 210,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:renderEvidence",
+      "line": 248,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:runSync",
+      "line": 101,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:safeUrl",
+      "line": 18,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:setMode",
+      "line": 125,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:setMsg",
+      "line": 70,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:showError",
+      "line": 149,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:showRuns",
+      "line": 89,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:summarize",
+      "line": 141,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#function:svg",
+      "line": 12,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#variable:asking",
+      "line": 140,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#variable:hlId",
+      "line": 240,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#variable:KINDS",
+      "line": 231,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#variable:mode",
+      "line": 124,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#variable:MODES",
+      "line": 119,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#variable:SOURCES",
+      "line": 31,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#variable:SVGNS",
+      "line": 4,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    },
+    {
+      "type": "defines",
+      "source": "file:web/app.js",
+      "target": "symbol:web/app.js#variable:TRACE",
+      "line": 118,
+      "resolved": true,
+      "confidence": 0.8,
+      "extractor": "conservative-js-symbols"
+    }
+  ],
   "warnings": [
     "Python AST unavailable: Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Apps > Advanced app settings > App execution aliases."
   ],
   "stats": {
-    "unresolvedCalls": 0
+    "unresolvedCalls": 26
   }
 }

@@ -1,0 +1,87 @@
+:root {
+  --bg: #f6f7f9; --card: #fff; --fg: #1c2230; --muted: #5d667a; --line: #d9dde5; --accent: #2457c5;
+  --high: #1a7f45; --medium: #9a6700; --low: #c4302b; --warnbg: #fff4e0; --warnline: #e0a030;
+  --k-slack: #7a3fb0; --k-jira: #2457c5; --k-pr: #1a7f45; --k-commit: #8a5a00; --k-other: #5d667a;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12151c; --card: #1b2030; --fg: #e6e9f0; --muted: #9aa3b5; --line: #323a50; --accent: #7aa2ff;
+    --high: #4cc27a; --medium: #e0b040; --low: #ff7b72; --warnbg: #3a2e14; --warnline: #a67c1f;
+    --k-slack: #c39bef; --k-jira: #7aa2ff; --k-pr: #5fd08a; --k-commit: #e0b040; --k-other: #9aa3b5;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--card); }
+h1 { margin: 0; font-size: 20px; }
+h2 { font-size: 15px; margin: 16px 0 8px; }
+.tag { color: var(--muted); font-size: 13px; flex: 1; }
+.pill { font-size: 12px; padding: 2px 8px; border-radius: 10px; border: 1px solid var(--line); }
+.pill.ok { color: var(--high); border-color: var(--high); }
+.pill.bad { color: var(--low); border-color: var(--low); }
+.layout { display: grid; grid-template-columns: 340px 1fr; gap: 20px; padding: 16px 20px; max-width: 1400px; margin: 0 auto; }
+@media (max-width: 860px) { .layout { grid-template-columns: 1fr; padding: 12px 16px; } }
+aside, main { min-width: 0; }
+.cards { display: grid; gap: 8px; }
+.card, section.answer, .run { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.card b { display: block; }
+.card span { font-size: 13px; color: var(--muted); }
+.ok { color: var(--high); } .bad { color: var(--low); }
+fieldset { border: 1px solid var(--line); border-radius: 8px; margin: 10px 0; padding: 6px 10px 10px; }
+legend { font-weight: 600; font-size: 13px; padding: 0 4px; }
+label { display: block; font-size: 13px; color: var(--muted); margin-top: 6px; }
+input, textarea, select { width: 100%; font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
+select { width: auto; }
+textarea { resize: vertical; font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
+button { font: inherit; cursor: pointer; border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 6px; padding: 6px 14px; }
+@media (prefers-color-scheme: dark) { button { color: #0b1020; } }
+button.secondary { background: transparent; color: var(--accent); }
+button:disabled { opacity: .55; cursor: not-allowed; }
+:focus-visible { outline: 3px solid var(--warnline); outline-offset: 2px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 10px 0; }
+.row label { margin: 0; display: flex; gap: 6px; align-items: center; }
+.hint, .msg { color: var(--muted); font-size: 12px; margin: 4px 0; }
+.msg.bad { color: var(--low); }
+.run { margin: 6px 0; font-size: 13px; }
+.sr { position: absolute; left: -9999px; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 10px; }
+.tabs button { background: transparent; color: var(--muted); border: 0; border-bottom: 3px solid transparent; border-radius: 0; }
+.tabs button[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.chips button { background: var(--card); color: var(--fg); border: 1px solid var(--line); border-radius: 14px; padding: 3px 10px; font-size: 13px; text-align: left; }
+#trace { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+#trace li { padding: 3px 0 3px 10px; border-left: 3px solid var(--accent); margin: 2px 0; }
+#trace b { font-family: ui-monospace, Consolas, monospace; }
+#trace span { color: var(--muted); }
+section.answer { margin-top: 16px; }
+.badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-weight: 700; font-size: 12px; text-transform: uppercase; color: #fff; }
+.badge.high { background: var(--high); } .badge.medium { background: var(--medium); } .badge.low { background: var(--low); }
+@media (prefers-color-scheme: dark) { .badge { color: #0b1020; } }
+.atext { white-space: pre-wrap; margin: 10px 0; }
+.atext a.cite { font-size: 12px; vertical-align: super; text-decoration: none; font-weight: 700; }
+.uncertainty { background: var(--warnbg); border: 2px solid var(--warnline); border-radius: 8px; padding: 8px 12px; margin: 10px 0; white-space: pre-wrap; }
+.uncertainty b { display: block; }
+.foot { color: var(--muted); font-size: 12px; }
+.error { background: var(--warnbg); border: 2px solid var(--low); border-radius: 8px; padding: 8px 12px; margin-top: 16px; }
+.legend { font-size: 12px; color: var(--muted); }
+.graphwrap { overflow-x: auto; background: var(--card); border: 1px solid var(--line); border-radius: 8px; margin: 8px 0; }
+#graph text { fill: var(--fg); font-size: 11px; }
+#graph .colhead { fill: var(--muted); font-weight: 700; }
+#graph .node rect { fill: var(--card); stroke-width: 2; cursor: pointer; }
+#graph .node.hl rect { fill: var(--warnbg); stroke-width: 4; }
+.edge { stroke: var(--muted); stroke-width: 1.6; fill: none; }
+.edge.text { stroke-dasharray: 5 4; }
+.edge.hl { stroke: var(--accent); stroke-width: 3; }
+#graph marker path { fill: var(--muted); }
+.rows { list-style: none; padding: 0; margin: 0; }
+.rows li { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--k-other); border-radius: 6px; padding: 8px 10px; margin: 6px 0; }
+.rows li.hl { outline: 3px solid var(--warnline); }
+.rows .kind { font-size: 11px; font-weight: 700; text-transform: uppercase; }
+.rows .time { color: var(--muted); font-size: 12px; margin-left: 8px; }
+.rows .snip { color: var(--muted); font-size: 13px; margin: 2px 0; overflow-wrap: anywhere; }
+.k-slack { --kc: var(--k-slack); } .k-jira { --kc: var(--k-jira); } .k-pr { --kc: var(--k-pr); } .k-commit { --kc: var(--k-commit); } .k-other { --kc: var(--k-other); }
+.rows li[class*="k-"] { border-left-color: var(--kc); } .rows .kind { color: var(--kc); }
+#graph .node[class*="k-"] rect { stroke: var(--kc); }
+
+a { color: var(--accent); }
+a:visited { color: var(--accent); }

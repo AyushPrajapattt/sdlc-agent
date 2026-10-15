@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hackfront - engineering memory</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>hackfront</h1>
+  <span class="tag">Why is this code like this? Cited answers from your repos, Jira and Slack.</span>
+  <span id="neo4j" class="pill" role="status"></span>
+</header>
+<div class="layout">
+  <aside aria-label="Workspace">
+    <h2>Workspace</h2>
+    <div id="sources" class="cards"></div>
+    <form id="wsform">
+      <fieldset><legend>GitHub</legend>
+        <label>Owner <input name="gh_owner" autocomplete="off"></label>
+        <label>Repos (comma-separated) <input name="gh_repos" autocomplete="off"></label>
+      </fieldset>
+      <fieldset><legend>Jira</legend>
+        <label>Site (https URL) <input name="jira_site" placeholder="your-org.atlassian.net" autocomplete="off"></label>
+        <label>Projects <input name="jira_projects" autocomplete="off"></label>
+      </fieldset>
+      <fieldset><legend>Slack</legend>
+        <label>Workspace <input name="slack_ws" autocomplete="off"></label>
+        <label>Channels <input name="slack_channels" autocomplete="off"></label>
+      </fieldset>
+      <button type="submit">Save workspace</button>
+      <p id="wsmsg" class="msg" role="status" aria-live="polite"></p>
+    </form>
+    <div class="row">
+      <button id="syncbtn" type="button">Sync sources</button>
+      <button id="demobtn" type="button" class="secondary">Load demo data</button>
+    </div>
+    <p id="syncmsg" class="msg" role="status" aria-live="polite"></p>
+    <div id="runs"></div>
+  </aside>
+
+  <main>
+    <div class="tabs" role="tablist" aria-label="Question mode">
+      <button role="tab" data-mode="why" aria-selected="true">Why</button>
+      <button role="tab" data-mode="debug" aria-selected="false">Debug</button>
+      <button role="tab" data-mode="change" aria-selected="false">Change</button>
+    </div>
+    <div id="chips" class="chips" aria-label="Example questions"></div>
+    <label for="q" class="sr">Question</label>
+    <textarea id="q" rows="5"></textarea>
+    <div class="row">
+      <label>Provider <select id="provider"></select></label>
+      <button id="ask" type="button">Ask</button>
+      <span class="hint">Ctrl+Enter</span>
+    </div>
+
+    <section id="tracebox" hidden aria-label="Agent trace">
+      <h2>Trace</h2>
+      <ol id="trace" aria-live="polite"></ol>
+    </section>
+    <section id="answerbox" aria-live="polite"></section>
+    <section id="evidence" hidden>
+      <h2>Evidence</h2>
+      <div class="legend"><svg width="34" height="8" aria-hidden="true"><line x1="0" y1="4" x2="34" y2="4" class="edge"/></svg> structural
+        <svg width="34" height="8" aria-hidden="true"><line x1="0" y1="4" x2="34" y2="4" class="edge text"/></svg> text-derived (explicit identifier in text)</div>
+      <div class="graphwrap"><svg id="graph" role="img" aria-label="Evidence graph"></svg></div>
+      <ol id="rows" class="rows"></ol>
+    </section>
+  </main>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

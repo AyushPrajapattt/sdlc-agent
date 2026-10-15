@@ -1,0 +1,30 @@
+{
+  "task": "MVP-INGEST",
+  "gate": "unit",
+  "kind": "command",
+  "attempt": "ed971ea9-a4aa-4afd-867b-f453ae215665",
+  "command": "uv run pytest tests/ingest/unit -q",
+  "started_at": "2026-10-15T05:55:34.796Z",
+  "observed_at": "2026-10-15T05:55:50.333Z",
+  "exit_code": 0,
+  "signal": null,
+  "stdout": "....................................                                     [100%]\r\n36 passed in 0.46s\r\n",
+  "stderr": "",
+  "failure": "source-mutated",
+  "receipt": null,
+  "revision": {
+    "commit": "89d0cfa1d6d8f8765aa9498938ea5a3472548dd1",
+    "dirty": true
+  },
+  "source_hash": "b5f909abe7d4c2fb14163679c92c1e59d57f378e8948e4654777b6f69065dbf4",
+  "before_hash": "08882fe048f3bc2be6b6a168b6f4c20b7573643cd021e21f0e83ec1bc42b4b3c",
+  "config_hash": "50e8048c5ca28deef74b4c675b1477d9ea0ddcbd0cd1864d7998382295b80f6d",
+  "environment": {
+    "node": "v24.14.1",
+    "platform": "win32",
+    "arch": "x64",
+    "verifier": "cbdddbf25e5ed5f3406b93881ae54f64d11a8c54f0bfe177d19d9d9946a6a971",
+    "variables": {}
+  },
+  "hash": "b19dea825267737afd497354470b743c152591ba7dbdab4e246e52bcd52e1a99"
+}

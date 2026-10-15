@@ -2,3 +2,7 @@
 # Python-generated files
 __pycache__/
 *.py[cod]
+.venv/
+.env
+workspace.json
+.hackfront/

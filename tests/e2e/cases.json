@@ -1,0 +1,42 @@
+[
+  {
+    "id": "retry-cap",
+    "mode": "why",
+    "question": "Why are gateway retries capped at 3?",
+    "cites_all": ["github.com/acme-demo/shop/pull/218", "atlassian.net/browse/PAY-412", "slack.com/archives/C01PAY"],
+    "answer_mentions_any": ["idempotenc", "duplicate", "8s", "8 s", "latency"]
+  },
+  {
+    "id": "session-ttl",
+    "mode": "why",
+    "question": "Why is the session TTL 15 minutes?",
+    "cites_all": ["atlassian.net/browse/SEC-77", "github.com/acme-demo/shop/pull/190"],
+    "answer_mentions_any": ["SEC-77", "audit", "compliance", "pen-test"]
+  },
+  {
+    "id": "change-retries",
+    "mode": "change",
+    "question": "Can I raise MAX_RETRIES in src/payments/gateway_client.py to 10?",
+    "cites_all": ["atlassian.net/browse/PAY-412"],
+    "answer_mentions_any": ["duplicate", "idempotenc", "8s", "latency", "214"]
+  },
+  {
+    "id": "debug-session",
+    "mode": "debug",
+    "question": "Users get logged out mid-checkout. Traceback:\n  File \"src/auth/session_cache.py\", line 31, in touch\n    session.expires_at = now() + SESSION_TTL_SECONDS\nSessionExpired: session expired after 900s",
+    "cites_all": ["atlassian.net/browse/SEC-77"],
+    "answer_mentions_any": ["15 min", "900", "SEC-77", "sliding", "refresh"]
+  },
+  {
+    "id": "redis-thin-evidence",
+    "mode": "why",
+    "question": "Why did we choose Redis for the session cache?",
+    "not_established": true
+  },
+  {
+    "id": "kafka-no-evidence",
+    "mode": "why",
+    "question": "Why do we use Kafka for order events?",
+    "not_established": true
+  }
+]

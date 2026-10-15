@@ -1,140 +1,58 @@
 # Engineering Memory
 
-**Building a source-grounded engineering knowledge graph to help explain why code is the way it is.**
-
-Engineering decisions are scattered across Git history, pull requests, issue trackers, and team discussions. Engineering Memory is designed to preserve those artifacts, normalize them into a common record format, and connect explicitly linked evidence in Neo4j.
-
-> **Current scope:** The ingestion foundation. Evidence retrieval, reasoning, and natural-language "why" answers are future capabilities, not claims of the current implementation.
-
-## The problem
-
-When investigating a codebase, engineers often need to understand more than what a function does. They need to discover which change introduced it, which pull request reviewed it, which issue motivated the work, and which discussion recorded the decision.
-
-Those facts are spread across multiple systems. Engineering Memory aims to make their connections traversable while preserving the source evidence behind each connection.
-
-## Architecture
+Connect GitHub, Jira and Slack into one **evidence graph**, then ask *why is this code like this?*, *debug this error*, or *is it safe to change this?* and get an answer where every claim links to its source — or an honest "not established".
 
 ```mermaid
-flowchart TD
-    GH["Git history and pull requests"]
-    JR["Jira issues"]
-    SL["Slack discussions"]
-
-    GH --> A["Source adapters and mappers"]
-    JR --> A
-    SL --> A
-
-    A --> B["Canonical record contract"]
-    B --> C["Deterministic extraction"]
-    C --> D["Ingestion runner"]
-    D --> E[("Neo4j knowledge graph")]
-
-    E -. "Future capability" .-> F["Evidence retrieval"]
-    F -. "Future capability" .-> G["Evidence-backed why answers"]
+flowchart LR
+  GH[GitHub] & JI[Jira] & SL[Slack] --> ING[Ingestion<br/>explicit links only]
+  ING --> NEO[(Neo4j)]
+  NEO <--> AG[Agent harness<br/>Azure / Sarvam]
+  AG --> UI[Web UI]
 ```
 
-Solid arrows represent the intended ingestion flow. Dotted arrows represent future product capabilities.
+## What is different
 
-## How ingestion works
+- **Edges are evidence, not guesses.** A link exists only if a source stated it (PR contains commit, reply-to, or an explicit `PAY-412` / PR URL / Slack permalink in text). Each edge records its `origin` and a source locator. No keyword or timing inference.
+- **The LLM does not get free rein over the database.** It picks from validated, read-only, capped graph tools; ids must come from evidence already seen; a guarded text2cypher path exists for complex questions and is only used to *find* ids, which are then re-read through trusted templates.
+- **Citations are verified in code.** A cited URL that was not retrieved is dropped and confidence is capped. "Not established" is a first-class answer.
+- **Demo and live share one path.** Demo data is native-shaped API payloads served to the real clients and mappers.
 
-1. **Read source artifacts.** Adapters handle provider-specific records and pagination.
-2. **Normalize records.** Source mappers convert provider payloads into a versioned, source-neutral contract.
-3. **Extract explicit facts.** Deterministic extraction preserves identifiers, timestamps, paths, change metadata, source locators, and explicit references.
-4. **Persist the graph.** The ingestion runner coordinates bounded processing and Neo4j writes.
-5. **Preserve provenance.** Records and relationships retain source information so stored connections can be traced back to their origin.
+More: [docs/architecture.md](docs/architecture.md) · scope and acceptance criteria: [SPEC.md](SPEC.md)
 
-## Relationship-building principles
-
-- **Stable identity:** canonical IDs are namespaced by provider, workspace, record type, and native ID.
-- **Explicit links first:** create source relationships when the source provides an explicit reference.
-- **No invented causality:** a shared keyword or nearby timestamp is not proof that one decision caused a code change.
-- **Traceable evidence:** retain provenance and source locators where available.
-- **Replay safety:** stable IDs and idempotent upserts are intended to prevent duplicate graph entities and relationships.
-- **Controlled semantics:** semantic extraction remains disabled by default pending a separately approved policy.
-
-See [Relationship-building system](docs/relationship-building.md) for the detailed relationship rules and requirements gap analysis.
-
-## Project Status and Roadmap
-
-Engineering Memory is being developed in stages. The following separates existing implementation from behavior that still needs verification and capabilities planned for later.
-
-### 1. Built
-
-- Versioned canonical records with source identity and provenance.
-- Deterministic extraction of source-grounded values and explicit references.
-- GitHub, Jira, and Slack source components.
-- An ingestion runner with bounded processing, cursor handling, and run summaries.
-- Neo4j persistence code and schema constraints.
-- Unit tests: 32 tests passed in the reported run.
-
-### 2. Being Verified
-
-- Real Neo4j integration and graph persistence.
-- Idempotent replay against a disposable Neo4j database.
-- The complete commit → pull request → issue → discussion evidence chain.
-- Relationship direction, stub promotion, and preservation of existing graph links.
-- All acceptance criteria in `SPEC.md`.
-
-### 3. Planned
-
-- Retrieve relevant graph paths for natural-language "why" questions.
-- Generate answers grounded in source evidence, with traceable citations.
-- Represent decision history and detect when later decisions supersede earlier ones.
-- Handle missing or conflicting evidence and avoid unsupported answers.
-- Consider semantic extraction only after its policy and evidence requirements are approved.
-
-These stages describe the current development picture, not a claim that the entire product is complete. The product specification in `SPEC.md` remains a draft.
-
-## Roadmap
-
-```mermaid
-flowchart TD
-    A["Source adapters"] --> B["Canonical records"]
-    B --> C["Deterministic extraction"]
-    C --> D["Neo4j graph ingestion"]
-    D --> E["Verify graph and replay"]
-    E --> F["Evidence retrieval"]
-    F --> G["Why-question answers"]
-
-    style A fill:#dbeafe,stroke:#2563eb,color:#111827
-    style B fill:#dbeafe,stroke:#2563eb,color:#111827
-    style C fill:#dbeafe,stroke:#2563eb,color:#111827
-    style D fill:#dbeafe,stroke:#2563eb,color:#111827
-    style E fill:#fef3c7,stroke:#d97706,color:#111827
-    style F fill:#ede9fe,stroke:#7c3aed,color:#111827
-    style G fill:#ede9fe,stroke:#7c3aed,color:#111827
-```
-
-The first four stages represent the ingestion foundation. Graph verification is the next validation milestone; evidence retrieval and "why" answers are future product capabilities.
-
-### Neo4j integration tests
-
-Configure the following environment variables locally:
-
-- `NEO4J_URI`
-- `NEO4J_USERNAME`
-- `NEO4J_PASSWORD`
-- `NEO4J_DATABASE` (optional)
-
-Then run:
+## Run it
 
 ```bash
-python -m unittest discover -s tests/integration -v
+uv sync
+cp .env.example .env          # add an LLM key (AZURE_FOUNDRY_* or SARVAM_API_KEY)
+docker compose up -d          # Neo4j on bolt://localhost:7688 (+ a throwaway test DB on 7689)
+uv run hackfront demo         # loads the synthetic acme-demo workspace through the real pipeline
+uv run hackfront serve        # http://127.0.0.1:8000
+uv run hackfront ask "Why are gateway retries capped at 3?"   # or from the terminal
 ```
 
-**Important:** Integration tests delete `Artifact` nodes during setup and teardown. Use a disposable test database only, never a production or shared database. Do not commit credentials or secret-bearing environment files.
+Try: *Why are gateway retries capped at 3?* · *Why is the session TTL 15 minutes?* · *Can I raise MAX_RETRIES in src/payments/gateway_client.py?* · *Why did we choose Redis for the session cache?* (the graph cannot answer this one — the agent should say so).
 
-For fuller instructions, see [`ingestion/TESTING.md`](ingestion/TESTING.md), if present.
+## Connect your own sources
 
-## Repository guide
+Set targets in the UI (or `workspace.json`, see `workspace.example.json`) and tokens in `.env`; then **Sync sources** or `uv run hackfront sync`.
 
-- [`SPEC.md`](SPEC.md) — draft product specification and acceptance criteria
-- [`AGENTS.md`](AGENTS.md) — repository workflow instructions
-- [`ingestion/`](ingestion/) — ingestion package, adapters, extraction, storage, and tests
-- [`docs/relationship-building.md`](docs/relationship-building.md) — relationship model, implemented rules, and gaps against the brief
+| Source | Needs |
+|---|---|
+| GitHub | `GITHUB_TOKEN` (fine-grained, read-only: Contents, Pull requests, Metadata) + owner and repo names |
+| Jira Cloud | site URL, `JIRA_EMAIL` + `JIRA_API_TOKEN`, project keys |
+| Slack | `SLACK_BOT_TOKEN` with `channels:history` (`groups:history` for private), bot invited to channels; `workspace` = your Slack subdomain |
 
-## Scope boundary
+LLM providers: `LLM_PROVIDER=azure|sarvam`, `LLM_MODEL` optional; switchable per question in the UI. Sarvam uses `https://api.sarvam.ai/v1/`.
 
-The current ingestion slice builds a provenance-aware graph from explicit source facts. It does not yet establish that a particular discussion caused a code change, infer missing relationships, detect superseded decisions, or generate final answers to "why" questions.
+## Test
 
-Those capabilities require separate retrieval and reasoning work, clear evidence contracts, and appropriate validation.
+```bash
+uv run pytest tests/ingest tests/agent tests/api -q   # needs `docker compose up -d` (test Neo4j on 7689)
+uv run pytest tests/e2e -q                             # real LLM calls; skips providers without keys
+```
+
+Neo4j tests wipe `Artifact` nodes in the **test** database only.
+
+## Layout
+
+`src/hackfront/ingest` contracts, sources (github/jira/slack), extraction (deterministic + text links), Neo4j storage, sync, demo data · `src/hackfront/agent` providers, harness, flow, verification · `src/hackfront/api` FastAPI · `web/` static UI · `research/` background papers.
