@@ -36,6 +36,10 @@ Platform (new):
 - FR-16: Claim-level investigations. An answer is a set of claims, each `supported` (a source states it), `inferred` (the agent's reasoning, flagged) or `unknown`, with citations whose quotes are verified verbatim against the cited node's text in code; unverifiable citations are dropped and unsupported claims are downgraded. Excluded evidence carries a deterministic reason; "still valid?" checks are deterministic graph facts. Investigations are stored and re-openable.
 - FR-17: Blame from evidence. Per-line blame for a file is computed by replaying the ingested commit patches (oldest to newest); when history is missing or a patch does not apply the result is marked incomplete with a note and nothing is guessed.
 
+- FR-18: Workspaces and integrations managed in the UI. A user creates workspaces; each has its own connections (GitHub owner/repos, Jira site/projects, Slack workspace/channels) and credentials entered in the UI (write-only: stored per workspace, never returned, only a masked hint), with a "test connection" per integration, discovery pickers (repos, projects, channels) and an AI-model key (Azure or Sarvam) per workspace. Environment variables remain a fallback.
+- FR-19: Background ingestion with live progress. Sync runs as a per-workspace background job; the UI shows per-stream status, pages, fetched/persisted counts, errors and final graph counts, survives reload, and flags incomplete streams with a "sync deeper" option.
+- FR-20: Workspace isolation. Every artifact carries a `scope` (repo, Jira project, Slack channel); a workspace's graph view, blame, agent retrieval and investigations see only its connected scopes. A one-click demo workspace (synthetic data through the same clients) supports onboarding and demos.
+
 ## Non-functional requirements
 
 - NFR-1: Core contract and writer do not depend on provider SDKs.
@@ -64,6 +68,9 @@ Platform (new):
 - AC-10: From a clean checkout, `uv sync`, `docker compose up -d`, `uv run hackfront demo`, `uv run hackfront serve` and `npm run dev` in `web/` yield a working UI.
 - AC-11: In the UI, clicking the `MAX_RETRIES = 3` line of the demo `gateway_client.py` opens an investigation whose supported claims cite the Jira issue, PR and Slack discussion with verified quotes.
 - AC-12: A fabricated citation id or non-verbatim quote returned by a model never appears as a supported citation.
+- AC-13: From an empty install, a user can create a workspace in the UI, enter GitHub/Jira/Slack credentials, test them, pick targets, run the initial sync while watching live progress, and ask a question, without touching files or environment variables.
+- AC-14: Credentials saved through the UI never appear in any API response, log or stored investigation; the demo workspace works with no source credentials.
+- AC-15: A question asked in workspace A never retrieves, cites or displays artifacts from scopes connected only to workspace B.
 
 ## Risks
 

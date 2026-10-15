@@ -110,7 +110,7 @@ export function Provider({ ws, repo, repoName, file, inv: initial, children }: {
     const c = new AbortController();
     ctl.current = c;
     setRunning(true); setLive([]); setAskError(""); setSelected(null); setClaim(null);
-    investigate({ question, mode: "why", provider: provider || undefined, repo: repoName, ...anchor }, (s) => setLive((l) => [...l, s]), c.signal)
+    investigate(ws, { question, mode: "why", provider: provider || undefined, repo: repoName, ...anchor }, (s) => setLive((l) => [...l, s]), c.signal)
       .then((r) => {
         absorb(r.graph); remember(r.investigation);
         setRunning(false);
@@ -121,7 +121,7 @@ export function Provider({ ws, repo, repoName, file, inv: initial, children }: {
         setRunning(false);
         setAskError(e.message);
       });
-  }, [provider, repoName, absorb, remember, openInvestigation]);
+  }, [ws, provider, repoName, absorb, remember, openInvestigation]);
 
   const selectLine = useCallback((l: number) => {
     setLine(l); setSelected(null); setClaim(null); setAskError("");

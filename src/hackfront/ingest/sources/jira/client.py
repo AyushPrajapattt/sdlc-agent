@@ -135,6 +135,32 @@ class JiraClient:
         except (UnicodeDecodeError, json.JSONDecodeError):
             raise JiraAPIError("Jira API returned invalid JSON", response.status) from None
 
+    def myself(self) -> dict:
+        """{displayName, emailAddress?} of the credential's user (credential test)."""
+        payload = self._get_json(f"{self.base_url}/rest/api/3/myself")
+        if not isinstance(payload, dict) or not isinstance(payload.get("displayName"), str):
+            raise JiraAPIError("expected a Jira user")
+        out = {"displayName": payload["displayName"]}
+        if isinstance(payload.get("emailAddress"), str):
+            out["emailAddress"] = payload["emailAddress"]
+        return out
+
+    def projects(self) -> list[dict]:
+        """[{key, name}] visible to the credential; 5 pages of 100 at most."""
+        out, start = [], 0
+        for _ in range(5):
+            payload = self._get_json(f"{self.base_url}/rest/api/3/project/search?"
+                                     + urlencode({"startAt": start, "maxResults": MAX_PAGE_SIZE}))
+            values = payload.get("values") if isinstance(payload, dict) else None
+            if not isinstance(values, list):
+                raise JiraAPIError("expected Jira projects")
+            out += [{"key": p["key"], "name": str(p.get("name") or p["key"])}
+                    for p in values if isinstance(p, dict) and isinstance(p.get("key"), str)]
+            if payload.get("isLast") is not False or not values:
+                break
+            start += len(values)
+        return out
+
     def get_issue(self, issue_key: str) -> Mapping[str, object]:
         if not issue_key or any(char in issue_key for char in "/?#"):
             raise ValueError("invalid issue key")

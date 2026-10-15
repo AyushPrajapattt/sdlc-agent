@@ -4,6 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from hackfront import config
+from hackfront.agent import investigation as agent_inv, llm
 from hackfront.api import app, investigate as route, workbench
 from tests.agent.unit.conftest import Scripted, cid, fake, graph  # noqa: F401  (fixtures)
 
@@ -30,12 +31,15 @@ class Keep:
 @pytest.fixture
 def env(graph, fake, tmp_path, monkeypatch):  # noqa: F811
     monkeypatch.setattr(config, "HOME", tmp_path)
+    graph.execute_query("MATCH (a:Artifact) SET a.scope = 'acme/shop'")  # the fixture graph belongs to repo acme/shop
+    for slug, repos in (("alpha", ["acme/shop"]), ("beta", ["other/thing"])):
+        config.create_workspace(slug, slug=slug)
+        config.save_workspace(slug, {"name": slug, "github": {"owner": "", "repos": repos}})
     monkeypatch.setattr(config, "neo4j_driver", lambda: Keep(graph))
     fake(Scripted([{"tool": "find_text", "arg": "zzz"}], ANSWER))
     monkeypatch.setattr(workbench, "blame_for", lambda d, o, r, p: {
         "path": p, "complete": True, "lines": [{"text": "import time", "blame": C1}, {"text": "x = 1", "blame": C1},
                                                {"text": "MAX_RETRIES = 3", "blame": C1}]})
-    monkeypatch.setattr(workbench, "_graph_scopes", lambda: {"indexed": ["acme/shop"]})
     return tmp_path
 
 
@@ -47,8 +51,8 @@ def events(text):
     return out
 
 
-def post(**body):
-    return client.post("/api/investigate", json={"question": "Why is it 3?", "provider": "azure", **body})
+def post(ws="alpha", **body):
+    return client.post(f"/api/w/{ws}/investigate", json={"question": "Why is it 3?", "provider": "azure", **body})
 
 
 def test_sse_trace_then_investigation_persisted_and_readable(env):
@@ -61,10 +65,10 @@ def test_sse_trace_then_investigation_persisted_and_readable(env):
     assert (inv["file"], inv["line"], inv["confidence"]) == ("src/pay/gateway.py", 3, "medium")
     assert [c["status"] for c in inv["claims"]] == ["supported", "unknown"]
     assert {n["id"] for n in graph_["nodes"]} == set(inv["nodes"]) and graph_["edges"]
-    assert client.get("/api/investigations").json() == [
+    assert client.get("/api/w/alpha/investigations").json() == [
         {"id": inv["id"], "question": "Why is it 3?", "file": "src/pay/gateway.py", "line": 3,
          "confidence": "medium", "created_at": inv["created_at"]}]
-    assert client.get(f"/api/investigations/{inv['id']}").json() == {"investigation": inv, "graph": graph_}
+    assert client.get(f"/api/w/alpha/investigations/{inv['id']}").json() == {"investigation": inv, "graph": graph_}
 
 
 def test_unanchored_works_without_any_blame(env, monkeypatch):
@@ -86,9 +90,10 @@ def test_anchor_failures_are_safe_http_errors(env, monkeypatch):
     assert r.status_code == 422 and "patch missing" in r.text  # incomplete blame is never guessed around
     monkeypatch.setattr(workbench, "blame_for", lambda d, o, r, p: {"complete": True, "lines": [{"text": "x", "blame": C1}]})
     assert post(file="a.py", line=9).status_code == 404  # line beyond the file
-    monkeypatch.setattr(workbench, "_graph_scopes", lambda: {"indexed": ["a/b", "c/d"]})
+    config.save_workspace("alpha", {"name": "alpha", "github": {"owner": "", "repos": ["a/b", "c/d"]}})
     assert post(file="a.py", line=1).status_code == 422  # ambiguous repo needs `repo`
-    assert client.get("/api/investigations").json() == []  # nothing persisted on failure
+    assert post(file="a.py", line=1, repo="x/y").status_code == 404  # repo outside the workspace
+    assert client.get("/api/w/alpha/investigations").json() == []  # nothing persisted on failure
 
 
 @pytest.mark.parametrize("body", [
@@ -102,8 +107,8 @@ def test_validation_rejects(env, body):
 
 
 def test_missing_question_and_wrong_types_422(env):
-    assert client.post("/api/investigate", json={"mode": "why"}).status_code == 422
-    assert client.post("/api/investigate", json={"question": 5}).status_code == 422
+    assert client.post("/api/w/alpha/investigate", json={"mode": "why"}).status_code == 422
+    assert client.post("/api/w/alpha/investigate", json={"question": 5}).status_code == 422
 
 
 def test_at_most_three_concurrent(env):
@@ -121,7 +126,7 @@ def test_at_most_three_concurrent(env):
 
 
 def test_errors_are_safe_events_and_nothing_persisted(env, monkeypatch):
-    r = client.post("/api/investigate", json={"question": "q", "provider": "sarvam"})  # not configured in tests
+    r = client.post("/api/w/alpha/investigate", json={"question": "q", "provider": "sarvam"})  # not configured in tests
     assert events(r.text)[-1][0] == "error" and "SARVAM_API_KEY" in r.text
 
     def boom(*a, **k):
@@ -131,13 +136,54 @@ def test_errors_are_safe_events_and_nothing_persisted(env, monkeypatch):
     monkeypatch.setattr("hackfront.agent.investigation.investigate", boom)
     r = post()
     assert "sk-123" not in r.text and "Traceback" not in r.text and events(r.text)[-1][0] == "error"
-    assert client.get("/api/investigations").json() == []
+    assert client.get("/api/w/alpha/investigations").json() == []
     assert all(route._slots.acquire(blocking=False) for _ in range(3))  # slots released after failures
     for _ in range(3):
         route._slots.release()
 
 
 def test_get_rejects_unknown_and_traversal(env):
-    (env / "secret.json").write_text(json.dumps({"investigation": {"id": "x"}, "graph": {}}))
+    (config.workspace_dir("alpha") / "secret.json").write_text(json.dumps({"investigation": {"id": "x"}, "graph": {}}))
     for bad in ("nope", "..%2Fsecret", "..%2F..%2Fsecret", "secret.json", "UPPER", "x" * 81):
-        assert client.get(f"/api/investigations/{bad}").status_code == 404
+        assert client.get(f"/api/w/alpha/investigations/{bad}").status_code == 404
+
+
+def test_agent_gets_only_the_workspace_scopes_and_credentials(env, monkeypatch):
+    got, real = {}, agent_inv.investigate
+
+    def spy(*a, **k):
+        got.update(k)
+        yield from real(*a, **k)
+
+    monkeypatch.setattr(agent_inv, "investigate", spy)
+    assert events(post().text)[-1][0] == "investigation"
+    assert got["scopes"] == ["acme/shop"] and got["workspace"] == "alpha"
+
+
+def test_other_workspace_sees_no_evidence_and_no_investigations(env, fake):
+    fake(Scripted([{"tool": "find_text", "arg": "PAY-412 storm"}], ANSWER))
+    mine = events(post().text)[-1][1]["investigation"]
+    assert mine["nodes"] and (config.workspace_dir("alpha") / "investigations" / f"{mine['id']}.json").exists()
+    theirs = events(post("beta").text)[-1][1]["investigation"]  # same question, same graph, other targets
+    assert theirs["nodes"] == [] and theirs["summary"].startswith("Not established")
+    assert [r["id"] for r in client.get("/api/w/beta/investigations").json()] == [theirs["id"]]
+    assert [r["id"] for r in client.get("/api/w/alpha/investigations").json()] == [mine["id"]]
+    assert client.get(f"/api/w/beta/investigations/{mine['id']}").status_code == 404
+    assert client.get(f"/api/w/alpha/investigations/{mine['id']}").status_code == 200
+
+
+@pytest.mark.parametrize("ws", ["nope", "BAD", ".."])
+def test_unknown_workspace_is_404(env, ws):
+    assert post(ws).status_code == 404
+    assert client.get(f"/api/w/{ws}/investigations").status_code == 404
+    assert client.get(f"/api/w/{ws}/investigations/x").status_code == 404
+    assert all(route._slots.acquire(blocking=False) for _ in range(3))  # no slot leaked
+    for _ in range(3):
+        route._slots.release()
+
+
+def test_workspace_credentials_are_selected_inside_the_run(env, monkeypatch):
+    seen = []
+    monkeypatch.setattr(llm, "set_workspace", lambda slug: seen.append(slug), raising=False)
+    assert events(post().text)[-1][0] == "investigation"
+    assert "alpha" in seen and seen[-1] is None  # set for the run, cleared after

@@ -1,4 +1,4 @@
-"""Workbench endpoints: workspace overview, whole graph, repo files, per-line blame (docs/workbench-api.md)."""
+"""Workbench endpoints per workspace: whole graph, repo files, per-line blame (docs/workbench-api.md)."""
 
 from __future__ import annotations
 
@@ -16,17 +16,9 @@ router = APIRouter()
 
 _NAME = re.compile(r"[A-Za-z0-9._-]+")
 _COMMITS = """
-MATCH (c:Artifact {record_kind: 'git_commit', provider: 'github', workspace: $ws})
+MATCH (c:Artifact {record_kind: 'git_commit', provider: 'github', scope: $ws})
 WHERE NOT coalesce(c.is_stub, false)
 RETURN c.canonical_id AS id, c.event_time AS time, c.change_paths AS paths, c.raw_payload_json AS raw"""
-_SCOPES = {
-    "repos": "MATCH (a:Artifact {provider: 'github'}) WHERE NOT coalesce(a.is_stub, false) RETURN DISTINCT a.workspace AS v",
-    "jira": "MATCH (a:Artifact {provider: 'jira'}) WHERE NOT coalesce(a.is_stub, false) RETURN DISTINCT a.workspace AS v",
-    "slack": "MATCH (a:Artifact {provider: 'slack'}) WHERE NOT coalesce(a.is_stub, false) "
-             "RETURN a.context_json AS v LIMIT 20000",  # ponytail: scans messages; index channel_id if this gets slow
-    "indexed": "MATCH (c:Artifact {record_kind: 'git_commit', provider: 'github'}) WHERE NOT coalesce(c.is_stub, false) "
-               "RETURN DISTINCT c.workspace AS v",
-}
 
 
 def check_repo(owner: str, repo: str) -> str:
@@ -114,13 +106,33 @@ def _with_driver(fn):
         driver.close()
 
 
-@router.get("/api/graph")
-def graph() -> dict:
-    return _with_driver(mapping.whole_graph)
+def _scopes(ws: str) -> dict:
+    """The workspace's connected targets; 404 for a bad or unknown workspace."""
+    try:
+        return config.scopes(ws)
+    except (ValueError, LookupError):
+        raise HTTPException(404, "Workspace not found") from None
 
 
-@router.get("/api/repo/{owner}/{repo}/files")
-def files(owner: str, repo: str) -> dict:
+def _own_repo(ws: str, owner: str, repo: str) -> None:
+    try:
+        name = check_repo(owner, repo)
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from None
+    if name not in _scopes(ws)["repos"]:
+        raise HTTPException(404, "Repository is not connected to this workspace")
+
+
+@router.get("/api/w/{ws}/graph")
+def graph(ws: str) -> dict:
+    scopes, names = _scopes(ws), config.names(ws)
+    return _with_driver(lambda driver: mapping.whole_graph(driver, mapping.flat_scopes(scopes), names))
+
+
+@router.get("/api/w/{ws}/repo/{owner}/{repo}/files")
+def files(ws: str, owner: str, repo: str) -> dict:
+    _own_repo(ws, owner, repo)
+
     def run(driver):
         rows = _commits(driver, check_repo(owner, repo))
         return {"files": sorted({p for r in rows for p in (r.get("paths") or [])})}
@@ -128,67 +140,7 @@ def files(owner: str, repo: str) -> dict:
     return _with_driver(run)
 
 
-@router.get("/api/repo/{owner}/{repo}/file")
-def file(owner: str, repo: str, path: str = "") -> dict:
+@router.get("/api/w/{ws}/repo/{owner}/{repo}/file")
+def file(ws: str, owner: str, repo: str, path: str = "") -> dict:
+    _own_repo(ws, owner, repo)
     return _with_driver(lambda driver: blame_for(driver, owner, repo, path))
-
-
-def _graph_scopes() -> dict:
-    """Every scope present in the graph; empty lists if Neo4j is down."""
-    out = {"repos": [], "jira": [], "slack": [], "indexed": []}
-    try:
-        driver = config.neo4j_driver()
-    except Exception:  # noqa: BLE001
-        return out
-    try:
-        for key, query in _SCOPES.items():
-            records, _, _ = driver.execute_query(query, database_=config.neo4j_database(), routing_="r")
-            values = {r["v"] for r in records if r["v"]}
-            if key == "slack":
-                values = {str(c) for c in (mapping._context(v).get("channel_id") for v in values) if c}
-            out[key] = sorted(values)
-    except Exception:  # noqa: BLE001
-        pass
-    finally:
-        driver.close()
-    return out
-
-
-@router.get("/api/workbench")
-def workbench() -> dict:
-    from .app import _token_present
-
-    try:
-        ws = config.load_workspace()
-    except Exception:  # noqa: BLE001
-        ws = json.loads(json.dumps(config.EMPTY_WORKSPACE))
-    owner = ws["github"]["owner"]
-    connected = {
-        "repos": [r if "/" in r else f"{owner}/{r}" for r in ws["github"]["repos"]],
-        "jira": list(ws["jira"]["projects"]),
-        "slack": list(ws["slack"]["channels"]),
-    }
-    scopes = _graph_scopes()
-    catalog = {k: sorted({*connected[k], *scopes[k]}) for k in connected}
-    try:
-        from hackfront.ingest.sync import graph_counts
-
-        neo4j = {"ok": True, "counts": graph_counts()}
-    except Exception:  # noqa: BLE001
-        neo4j = {"ok": False}
-    try:
-        from hackfront.agent import providers
-
-        provs = providers()
-    except Exception:  # noqa: BLE001
-        provs = []
-    tokens = _token_present()
-    return {
-        "workspace": {"slug": "local", "name": owner or "Local"},
-        "connected": connected,
-        "catalog": catalog,
-        "indexed_repos": scopes["indexed"],
-        "neo4j": neo4j,
-        "sources": {k: {"token_present": v} for k, v in tokens.items()},
-        "providers": provs,
-    }

@@ -1,6 +1,4 @@
 import json
-import sys
-import types
 
 import pytest
 from fastapi.testclient import TestClient
@@ -8,9 +6,12 @@ from fastapi.testclient import TestClient
 from hackfront import config
 from hackfront.api import app, workbench
 from hackfront.ingest.demo import data as d
+from tests.agent.unit.conftest import graph  # noqa: F401  (fixture)
 
 client = TestClient(app)
-WS = f"{d.OWNER}/{d.REPO}"
+REPO = f"{d.OWNER}/{d.REPO}"
+WS = "alpha"
+BASE = f"/api/w/{WS}/repo/{REPO}"
 GW = "src/payments/gateway_client.py"
 
 
@@ -19,24 +20,42 @@ def cid(c):
 
 
 class FakeDriver:
-    """Answers the workbench queries from the demo commits; records closes."""
+    """Answers the workbench commit query from the demo commits (only for the scope they belong to); records closes."""
 
-    def __init__(self, commits=d.COMMITS, scopes=None):
-        self.commits, self.closed = commits, False
-        self.scopes = scopes or {}
+    def __init__(self, commits=d.COMMITS):
+        self.commits, self.closed, self.queries = commits, False, []
 
     def execute_query(self, query, **params):
-        if "git_commit" in query and "$ws" in query:
-            rows = [{"id": cid(c), "time": c["commit"]["author"]["date"],
-                     "paths": [f["filename"] for f in c["files"]], "raw": json.dumps(c)}
-                    for c in self.commits if params["ws"] == WS]
-        else:
-            key = next(k for k in workbench._SCOPES if workbench._SCOPES[k] == query)
-            rows = [{"v": v} for v in self.scopes.get(key, [])]
+        self.queries.append((query, params))
+        rows = [{"id": cid(c), "time": c["commit"]["author"]["date"],
+                 "paths": [f["filename"] for f in c["files"]], "raw": json.dumps(c)}
+                for c in self.commits if params["ws"] == REPO]
         return rows, None, None
 
     def close(self):
         self.closed = True
+
+
+class Keep:
+    """Driver proxy: the throwaway test driver is session-scoped, so close() must not close it."""
+
+    def __init__(self, driver):
+        self.driver = driver
+
+    def __getattr__(self, name):
+        return getattr(self.driver, name)
+
+    def close(self):
+        pass
+
+
+@pytest.fixture(autouse=True)
+def workspaces(tmp_path, monkeypatch):
+    """alpha connects the demo repo; beta connects something else."""
+    monkeypatch.setattr(config, "HOME", tmp_path)
+    for slug, repos in (("alpha", [REPO]), ("beta", ["other/thing"])):
+        config.create_workspace(slug, slug=slug)
+        config.save_workspace(slug, {"name": slug, "github": {"owner": "", "repos": repos}})
 
 
 @pytest.fixture
@@ -46,21 +65,15 @@ def driver(monkeypatch):
     return fake
 
 
-def fake_module(monkeypatch, name, **attrs):
-    mod = types.ModuleType(name)
-    mod.__dict__.update(attrs)
-    monkeypatch.setitem(sys.modules, name, mod)
-
-
 def test_files_lists_touched_paths_and_closes_driver(driver):
-    r = client.get(f"/api/repo/{WS}/files")
+    r = client.get(f"{BASE}/files")
     assert r.status_code == 200
     assert r.json()["files"] == sorted(d.FINAL_FILES)
-    assert driver.closed
+    assert driver.closed and driver.queries[0][1]["ws"] == REPO  # commits are selected by scope == owner/repo
 
 
 def test_file_blame_shape_and_key_line(driver):
-    r = client.get(f"/api/repo/{WS}/file", params={"path": GW})
+    r = client.get(f"{BASE}/file", params={"path": GW})
     body = r.json()
     assert r.status_code == 200 and body["complete"] is True and body["path"] == GW
     assert [x["text"] for x in body["lines"]] == d.FINAL_FILES[GW].splitlines()
@@ -75,20 +88,33 @@ def test_same_timestamp_commits_follow_parent_order():
 
 @pytest.mark.parametrize("path", ["", "/etc/passwd", "../x", "a/../b", "a//b", "a\\b", "a\0b", "x" * 301, "./a"])
 def test_bad_paths_rejected(driver, path):
-    r = client.get(f"/api/repo/{WS}/file", params={"path": path})
+    r = client.get(f"{BASE}/file", params={"path": path})
     assert r.status_code == 422 and "detail" in r.json()
 
 
 @pytest.mark.parametrize("owner,repo", [("a b", "r"), ("o", "r$"), ("..", "r"), ("o", "..")])
 def test_bad_repo_names_rejected(driver, owner, repo):
-    assert client.get(f"/api/repo/{owner}/{repo}/files").status_code in (404, 422)
-    assert client.get(f"/api/repo/{owner}/{repo}/file", params={"path": "a.py"}).status_code in (404, 422)
+    assert client.get(f"/api/w/{WS}/repo/{owner}/{repo}/files").status_code in (404, 422)
+    assert client.get(f"/api/w/{WS}/repo/{owner}/{repo}/file", params={"path": "a.py"}).status_code in (404, 422)
 
 
-def test_unindexed_repo_and_unknown_file_are_404(driver):
-    assert client.get("/api/repo/nobody/nothing/files").status_code == 404
-    assert client.get("/api/repo/nobody/nothing/file", params={"path": "a.py"}).status_code == 404
-    assert client.get(f"/api/repo/{WS}/file", params={"path": "nope.py"}).status_code == 404
+def test_unconnected_repo_and_unknown_file_are_404(driver):
+    assert client.get(f"/api/w/{WS}/repo/nobody/nothing/files").status_code == 404
+    assert client.get(f"/api/w/{WS}/repo/nobody/nothing/file", params={"path": "a.py"}).status_code == 404
+    assert client.get(f"{BASE}/file", params={"path": "nope.py"}).status_code == 404
+
+
+def test_repo_of_another_workspace_is_404_and_never_queried(driver):
+    assert client.get(f"/api/w/beta/repo/{REPO}/files").status_code == 404  # ingested, but not beta's
+    assert client.get(f"/api/w/beta/repo/{REPO}/file", params={"path": GW}).status_code == 404
+    assert driver.queries == []
+
+
+@pytest.mark.parametrize("ws", ["nope", "BAD SLUG", ".."])
+def test_unknown_workspace_is_404(driver, ws):
+    assert client.get(f"/api/w/{ws}/graph").status_code == 404
+    assert client.get(f"/api/w/{ws}/repo/{REPO}/files").status_code == 404
+    assert driver.queries == []
 
 
 def test_missing_patch_marks_file_incomplete(monkeypatch):
@@ -98,7 +124,7 @@ def test_missing_patch_marks_file_incomplete(monkeypatch):
             if c["sha"] == d.C_RETRY["sha"]:
                 f.pop("patch")
     monkeypatch.setattr(config, "neo4j_driver", lambda: FakeDriver(commits))
-    body = client.get(f"/api/repo/{WS}/file", params={"path": GW}).json()
+    body = client.get(f"{BASE}/file", params={"path": GW}).json()
     assert body["complete"] is False and body["lines"] == [] and "no patch" in body["note"]
 
 
@@ -107,7 +133,7 @@ def test_neo4j_down_is_503_without_leaking(monkeypatch):
         raise RuntimeError("bolt://user:SECRET@host")
 
     monkeypatch.setattr(config, "neo4j_driver", boom)
-    r = client.get(f"/api/repo/{WS}/files")
+    r = client.get(f"{BASE}/files")
     assert r.status_code == 503 and "SECRET" not in r.text
 
 
@@ -118,71 +144,22 @@ def test_query_failure_is_500_safe(monkeypatch):
 
     fake = Bad()
     monkeypatch.setattr(config, "neo4j_driver", lambda: fake)
-    r = client.get("/api/graph")
+    r = client.get(f"/api/w/{WS}/graph")
     assert r.status_code == 500 and "SECRET" not in r.text and fake.closed
 
 
-def test_graph_delegates_to_mapping(driver, monkeypatch):
-    monkeypatch.setattr(workbench.mapping, "whole_graph", lambda drv: {"nodes": [], "edges": ["x"]})
-    assert client.get("/api/graph").json() == {"nodes": [], "edges": ["x"]}
-
-
-def test_workbench_overview(tmp_path, monkeypatch):
-    monkeypatch.setattr(config, "WORKSPACE_FILE", tmp_path / "workspace.json")
-    config.save_workspace({"github": {"owner": "acme", "repos": ["shop"]}, "jira": {"projects": ["PAY"]},
-                           "slack": {"channels": ["C1"]}})
-    monkeypatch.setenv("GITHUB_TOKEN", "ghp_SECRET1")
-    fake = FakeDriver(scopes={"repos": ["acme/shop", "other/x"], "jira": ["SEC"], "indexed": ["acme/shop"],
-                              "slack": [json.dumps({"channel_id": "C2"}), "not json", json.dumps({})]})
-    monkeypatch.setattr(config, "neo4j_driver", lambda: fake)
-    fake_module(monkeypatch, "hackfront.ingest.sync", graph_counts=lambda: {"artifacts": 3})
-    fake_module(monkeypatch, "hackfront.agent", providers=lambda: [{"name": "p", "model": "m", "configured": True}])
-    r = client.get("/api/workbench")
-    body = r.json()
-    assert r.status_code == 200 and "SECRET" not in r.text
-    assert body["workspace"] == {"slug": "local", "name": "acme"}
-    assert body["connected"] == {"repos": ["acme/shop"], "jira": ["PAY"], "slack": ["C1"]}
-    assert body["catalog"] == {"repos": ["acme/shop", "other/x"], "jira": ["PAY", "SEC"], "slack": ["C1", "C2"]}
-    assert body["indexed_repos"] == ["acme/shop"]
-    assert body["neo4j"] == {"ok": True, "counts": {"artifacts": 3}}
-    assert body["sources"]["github"] == {"token_present": True}
-    assert body["providers"][0]["name"] == "p" and fake.closed
-
-
-def test_workbench_degrades_when_everything_is_down(tmp_path, monkeypatch):
-    monkeypatch.setattr(config, "WORKSPACE_FILE", tmp_path / "workspace.json")
-
-    def boom(*a, **k):
-        raise RuntimeError("down")
-
-    monkeypatch.setattr(config, "neo4j_driver", boom)
-    fake_module(monkeypatch, "hackfront.ingest.sync", graph_counts=boom)
-    fake_module(monkeypatch, "hackfront.agent", providers=boom)
-    body = client.get("/api/workbench").json()
-    assert body["neo4j"] == {"ok": False} and body["providers"] == [] and body["indexed_repos"] == []
-    assert body["workspace"] == {"slug": "local", "name": "Local"}
-    assert body["catalog"] == {"repos": [], "jira": [], "slack": []}
+def test_graph_delegates_to_mapping_with_workspace_scopes_and_names(driver, monkeypatch):
+    seen = []
+    monkeypatch.setattr(workbench.mapping, "whole_graph",
+                        lambda drv, scopes, names: seen.append((scopes, names)) or {"nodes": [], "edges": ["x"]})
+    assert client.get(f"/api/w/{WS}/graph").json() == {"nodes": [], "edges": ["x"]}
+    assert seen == [([REPO], {"channels": {}, "users": {}})]
 
 
 # ---- real Neo4j (the throwaway test instance; skipped when unreachable)
-def test_real_graph_file_endpoint(clean_graph, monkeypatch, tmp_path):
-    from hackfront.ingest.demo import DEMO_WORKSPACE
-    from hackfront.ingest.sync import sync_workspace
-    from tests.conftest import TEST_AUTH, TEST_URI
-
-    monkeypatch.setattr(config, "WORKSPACE_FILE", tmp_path / "workspace.json")
-    monkeypatch.setenv("NEO4J_URI", TEST_URI)
-    monkeypatch.setenv("NEO4J_USERNAME", TEST_AUTH[0])
-    monkeypatch.setenv("NEO4J_PASSWORD", TEST_AUTH[1])
-    assert all(s["complete"] for s in sync_workspace(DEMO_WORKSPACE, demo=True))
-
-    body = client.get(f"/api/repo/{WS}/file", params={"path": GW}).json()
-    assert body["complete"] is True
-    assert [x["text"] for x in body["lines"]] == d.FINAL_FILES[GW].splitlines()
-    assert next(x for x in body["lines"] if x["text"] == "MAX_RETRIES = 3")["blame"] == cid(d.C_RETRY)
-    assert set(client.get(f"/api/repo/{WS}/files").json()["files"]) == set(d.FINAL_FILES)
-    ids = {n["id"] for n in client.get("/api/graph").json()["nodes"]}
-    assert cid(d.C_RETRY) in ids  # blame ids are real graph node ids
-    wb = client.get("/api/workbench").json()
-    assert WS in wb["indexed_repos"] and {"PAY", "SEC"} <= set(wb["catalog"]["jira"])
-    assert {"C01PAY", "C02SUP", "C03ENG"} <= set(wb["catalog"]["slack"]) and wb["neo4j"]["ok"]
+def test_real_graph_is_limited_to_the_workspace_scopes(graph, monkeypatch):  # noqa: F811
+    graph.execute_query("MATCH (a:Artifact) WHERE a.scope = 'acme' SET a.scope = $s", s=REPO)  # fixture graph: all 'acme'
+    monkeypatch.setattr(config, "neo4j_driver", lambda: Keep(graph))
+    mine = client.get(f"/api/w/{WS}/graph").json()
+    assert len(mine["nodes"]) == 7 and mine["edges"]  # the seven non-stub artifacts
+    assert client.get("/api/w/beta/graph").json() == {"nodes": [], "edges": []}

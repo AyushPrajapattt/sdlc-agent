@@ -29,7 +29,7 @@ class InvestigateBody(BaseModel):
     model: str | None = None
     file: str | None = None
     line: StrictInt | None = None
-    repo: str | None = None  # "owner/repo"; optional when exactly one repository is indexed
+    repo: str | None = None  # "owner/repo"; optional when the workspace connects exactly one repository
 
 
 def _sse(event: str, data: dict) -> str:
@@ -64,16 +64,25 @@ def _invalid(body: InvestigateBody) -> str | None:
     return None
 
 
-def _anchor(driver, repo: str | None, file: str, line: int) -> dict:
+def _scopes(ws: str) -> dict:
+    """The workspace's connected targets; 404 for a bad or unknown workspace."""
+    try:
+        return config.scopes(ws)
+    except (ValueError, LookupError):
+        raise HTTPException(404, "Workspace not found") from None
+
+
+def _anchor(driver, repos: list[str], repo: str | None, file: str, line: int) -> dict:
     """{file, line, text, blame_id}: the line's text and the commit blamed for it, from the ingested patches."""
     from . import workbench
 
     try:
-        if repo is None:  # the UI knows the repo; a single indexed repo is unambiguous without it
-            indexed = workbench._graph_scopes()["indexed"]
-            if len(indexed) != 1:
-                raise HTTPException(422, "repo (owner/repo) is required when several repositories are indexed")
-            repo = indexed[0]
+        if repo is None:  # the UI knows the repo; a single connected repo is unambiguous without it
+            if len(repos) != 1:
+                raise HTTPException(422, "repo (owner/repo) is required unless the workspace connects exactly one repository")
+            repo = repos[0]
+        elif repo not in repos:
+            raise LookupError("repository is not connected to this workspace")
         owner, _, name = repo.partition("/")
         got = workbench.blame_for(driver, owner, name, file)
     except HTTPException:
@@ -91,11 +100,13 @@ def _anchor(driver, repo: str | None, file: str, line: int) -> dict:
     return {"file": file, "line": line, "text": lines[line - 1]["text"], "blame_id": lines[line - 1]["blame"]}
 
 
-@router.post("/api/investigate")
-def investigate(body: InvestigateBody):
+@router.post("/api/w/{ws}/investigate")
+def investigate(ws: str, body: InvestigateBody):
+    targets = _scopes(ws)
     error = _invalid(body)
     if error:
         return JSONResponse({"detail": error}, 422)
+    scopes = [*targets["repos"], *targets["jira"], *targets["slack"]]
     if not _slots.acquire(blocking=False):
         return JSONResponse({"detail": f"At most {MAX_CONCURRENT} investigations can run at once; try again shortly"}, 429)
     driver = None
@@ -105,19 +116,20 @@ def investigate(body: InvestigateBody):
             driver = config.neo4j_driver()
         except Exception:  # noqa: BLE001 - driver messages may contain URIs
             raise HTTPException(503, "Neo4j unreachable or not configured") from None
-        anchor = _anchor(driver, body.repo, body.file, body.line) if body.file else None
+        anchor = _anchor(driver, targets["repos"], body.repo, body.file, body.line) if body.file else None
         out: queue.Queue = queue.Queue()
 
         def work():
             try:
                 from hackfront.agent.investigation import investigate as run, save
 
-                for ev in run(body.question.strip(), body.mode, body.provider, body.model, driver, anchor):
+                for ev in run(body.question.strip(), body.mode, body.provider, body.model, driver, anchor,
+                              scopes=scopes, workspace=ws):
                     if ev["event"] == "trace":
                         out.put(_sse("trace", {"step": ev["step"]}))
                     elif ev["event"] == "investigation":
                         try:
-                            save(ev["investigation"], ev["graph"])
+                            save(ev["investigation"], ev["graph"], ws)
                         except Exception:  # noqa: BLE001 - the answer is still worth delivering
                             log.exception("could not persist investigation")
                         out.put(_sse("investigation", {"investigation": ev["investigation"], "graph": ev["graph"]}))
@@ -145,18 +157,20 @@ def investigate(body: InvestigateBody):
     return StreamingResponse(stream(), media_type="text/event-stream", headers={"Cache-Control": "no-cache"})
 
 
-@router.get("/api/investigations")
-def list_investigations() -> list[dict]:
+@router.get("/api/w/{ws}/investigations")
+def list_investigations(ws: str) -> list[dict]:
     from hackfront.agent.investigation import list_all
 
-    return list_all()
+    _scopes(ws)
+    return list_all(ws)
 
 
-@router.get("/api/investigations/{iid}")
-def get_investigation(iid: str) -> dict:
+@router.get("/api/w/{ws}/investigations/{iid}")
+def get_investigation(ws: str, iid: str) -> dict:
     from hackfront.agent.investigation import get
 
-    found = get(iid)
+    _scopes(ws)
+    found = get(iid, ws)
     if found is None:
         raise HTTPException(404, "Investigation not found")
     return found

@@ -3,8 +3,8 @@ import Empty from "@/components/Empty";
 import { WhyPage } from "@/components/Gate";
 
 async function Inner({ params }: Pick<PageProps<"/w/[ws]/[repo]/why/[id]">, "params">) {
-  const { repo, id } = await params;
-  return <WhyPage repo={repo} id={id} />;
+  const { ws, repo, id } = await params;
+  return <WhyPage ws={ws} repo={repo} id={id} />;
 }
 
 export default function Page({ params }: PageProps<"/w/[ws]/[repo]/why/[id]">) {

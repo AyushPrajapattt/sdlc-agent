@@ -62,7 +62,7 @@ export default function LeftPane({ ws }: { ws: string }) {
             {!connected.repos.includes(repo) ? (
               <p className="px-2 py-3 text-dim">Not connected.</p>
             ) : !isIndexed(repo) ? (
-              <p className="px-2 py-3 text-dim">Not synced yet. Use Connections to sync.</p>
+              <p className="px-2 py-3 text-dim">Not synced yet. <Link href={`/w/${ws}/setup`} className="text-accent hover:underline">Set up</Link> to ingest.</p>
             ) : (
               <Files repo={repo} base={`/w/${ws}/${slug}`} active={file} />
             )}

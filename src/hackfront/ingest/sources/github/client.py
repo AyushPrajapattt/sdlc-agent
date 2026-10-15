@@ -15,6 +15,7 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 API_VERSION = "2026-03-10"
 DEFAULT_API_URL = "https://api.github.com"
 MAX_PAGE_SIZE = 100
+_DISCOVERY_PATH = r"/user|/user/repos|/(?:orgs|users)/[A-Za-z0-9-]+/repos"  # token test + repo picker only
 
 
 class GitHubAPIError(RuntimeError):
@@ -120,10 +121,45 @@ class GitHubClient:
         if (
             parsed.scheme != "https"
             or _origin(url) != self._api_origin
-            or not parsed.path.startswith(f"{self._api_path}/repos/")
+            or not (
+                parsed.path.startswith(f"{self._api_path}/repos/")
+                or re.fullmatch(_DISCOVERY_PATH, parsed.path.removeprefix(self._api_path))
+            )
         ):
             raise ValueError("GitHub API URL must stay under this host's /repos/ path")
         return url
+
+    def whoami(self) -> str:
+        """Login of the token's user (credential test)."""
+        login = self.get_resource(f"{self.api_url}/user").get("login")
+        if not isinstance(login, str):
+            raise GitHubAPIError("expected a GitHub login")
+        return login
+
+    def list_repos(self, owner: str | None) -> list[dict]:
+        """[{full_name, private}] of an owner's repos (org, else user) or the token's repos; 5 pages max."""
+        if owner is None:
+            return self._repos("user/repos", {"affiliation": "owner,collaborator,organization_member"})
+        if not re.fullmatch(r"[A-Za-z0-9-]+", owner):
+            raise ValueError("invalid owner")
+        try:
+            return self._repos(f"orgs/{owner}/repos")
+        except GitHubAPIError as error:
+            if error.status != 404:
+                raise
+            return self._repos(f"users/{owner}/repos")
+
+    def _repos(self, path: str, params: Mapping[str, str] | None = None) -> list[dict]:
+        out, cursor = [], None
+        for _ in range(5):
+            page = (self.get_page(path, cursor=cursor) if cursor
+                    else self.get_page(path, params={"sort": "pushed", **(params or {})}))
+            out += [{"full_name": r["full_name"], "private": bool(r.get("private"))}
+                    for r in page.items if isinstance(r.get("full_name"), str)]
+            cursor = page.next_cursor
+            if not cursor:
+                break
+        return out
 
     def _headers(self) -> dict[str, str]:
         headers = {

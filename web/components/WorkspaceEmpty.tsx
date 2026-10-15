@@ -1,18 +1,16 @@
 "use client";
-import { useData } from "@/lib/data";
+// /w/[ws]: go straight to the first indexed repo, or to the setup checklist when nothing is ingested yet.
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { repoSlug, useData } from "@/lib/data";
 import Empty from "./Empty";
-import { useManage } from "./Shell";
 
 export default function WorkspaceEmpty() {
-  const { repos, info, warn } = useData();
-  const manage = useManage();
-  if (!info) return null;
-  return repos.length ? (
-    <Empty icon="repo" title="Select a repository">{warn && <p className="text-warn">{warn}</p>}</Empty>
-  ) : (
-    <Empty icon="repo" title="No repositories connected">
-      <p className="mb-3 text-dim">Connect a repository and sync, or load the demo data.</p>
-      <button onClick={() => manage(info.workspace.slug)} className="h-8 rounded-md bg-fg px-4 text-[12.5px] font-medium text-bg hover:opacity-90">Connect</button>
-    </Empty>
-  );
+  const router = useRouter();
+  const { ws, info, status, warn } = useData();
+  const first = info?.indexed_repos[0];
+  useEffect(() => {
+    if (status === "ready" && ws) router.replace(first ? `/w/${ws}/${repoSlug(first)}` : `/w/${ws}/setup`);
+  }, [status, ws, first, router]);
+  return <Empty icon="repo" title="Opening…">{warn && <p className="text-warn">{warn}</p>}</Empty>;
 }

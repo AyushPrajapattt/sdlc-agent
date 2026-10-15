@@ -4,7 +4,7 @@ import pytest
 
 from hackfront import config
 from hackfront.agent import investigation as inv
-from hackfront.ingest.contracts import Provenance, RecordKind, SourceIdentity, Artifact
+from hackfront.ingest.contracts import Change, Provenance, RecordKind, SourceIdentity, Artifact
 from hackfront.ingest.storage.neo4j import Neo4jStore
 
 from .conftest import K, Scripted, art, cid, url
@@ -93,6 +93,8 @@ def test_unanchored_has_no_file_check_and_no_evidence_is_fixed(graph, fake):
 @pytest.fixture
 def home(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "HOME", tmp_path)
+    config.create_workspace("Alpha", slug="alpha")
+    config.create_workspace("Beta", slug="beta")
     return tmp_path
 
 
@@ -100,14 +102,31 @@ def test_persistence_roundtrip_listing_and_traversal(home):
     a = {"id": inv.new_id("Why is the TTL 15 min?!"), "question": "q1", "confidence": "low", "created_at": "2026-01-01T00:00:00Z"}
     b = {"id": inv.new_id("")[:20], "question": "q2", "file": "f.py", "line": 2, "confidence": "high", "created_at": "2026-02-01T00:00:00Z"}
     assert a["id"].startswith("why-is-the-ttl-15-min-") and inv.ID_OK.fullmatch(a["id"])
-    inv.save(a, {"nodes": [], "edges": []})
-    inv.save(b, {"nodes": [{"id": "n"}], "edges": []})
-    assert inv.get(a["id"]) == {"investigation": a, "graph": {"nodes": [], "edges": []}}
-    assert [r["id"] for r in inv.list_all()] == [b["id"], a["id"]] and inv.list_all()[0]["line"] == 2
-    assert not list((home / ".hackfront" / "investigations").glob("*.tmp"))
+    inv.save(a, {"nodes": [], "edges": []}, "alpha")
+    inv.save(b, {"nodes": [{"id": "n"}], "edges": []}, "alpha")
+    assert inv.get(a["id"], "alpha") == {"investigation": a, "graph": {"nodes": [], "edges": []}}
+    assert [r["id"] for r in inv.list_all("alpha")] == [b["id"], a["id"]] and inv.list_all("alpha")[0]["line"] == 2
+    assert not list((config.workspace_dir("alpha") / "investigations").glob("*.tmp"))
     (home / "secret.json").write_text(json.dumps({"investigation": "x"}))
     for bad in ("../../secret", "..\\secret", "../secret", "A", "a/b", "", "x" * 81, "a.json"):
-        assert inv.get(bad) is None
+        assert inv.get(bad, "alpha") is None
     with pytest.raises(ValueError):
-        inv.save({**a, "id": "../evil"}, {})
-    assert inv.list_all(limit=1)[0]["id"] in (a["id"], b["id"])
+        inv.save({**a, "id": "../evil"}, {}, "alpha")
+    assert inv.list_all("alpha", limit=1)[0]["id"] in (a["id"], b["id"])
+    # another workspace sees none of it, by list or by id
+    assert inv.list_all("beta") == [] and inv.get(a["id"], "beta") is None
+    with pytest.raises(ValueError):
+        inv.save(a, {}, "../beta")
+
+
+def test_checks_ignore_out_of_scope_commits_and_issues(graph, fake):
+    store = Neo4jStore(graph)
+    other = Artifact(source=SourceIdentity("github", "rival/app", "commit", "z9", "https://r.test/z9"), kind=K.GIT_COMMIT,
+                     observed_at="2024-06-01T00:00:00Z", event_time="2024-03-01T00:00:00Z", title="rival edit", text="x",
+                     raw_payload={}, change=Change(paths=("src/pay/gateway.py",)),
+                     provenance=Provenance("https://r.test/z9", "$", "2024-06-01T00:00:00Z", "t/1"))
+    store.write_artifact(other)
+    fake(Scripted([{"tool": "find_text", "arg": "zzz"}], synth(*CLAIMS)))
+    for scopes, state in ((["acme"], "holds"), (["acme", "rival/app"], "changed")):
+        events = list(inv.investigate("Why is it 3?", "why", "azure", None, graph, ANCHOR, scopes=scopes))
+        assert events[-1]["investigation"]["checks"][0]["state"] == state

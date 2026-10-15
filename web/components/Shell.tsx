@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Fragment, createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { WS, repoSlug, useData, useRepoFiles } from "@/lib/data";
+import { repoSlug, useData, useRepoFiles } from "@/lib/data";
 import { decodeSeg, fileHref } from "@/lib/workspace";
 import ConfigDialog from "./ConfigDialog";
 import { Icon, type IconName } from "./icons";
@@ -35,7 +35,7 @@ function Switcher({ onManage }: { onManage: (ws: string) => void }) {
   const { ws } = useLocation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const { info } = useData();
+  const { info, workspaces } = useData();
   const cur = info?.workspace;
   useEffect(() => {
     const on = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
@@ -53,19 +53,29 @@ function Switcher({ onManage }: { onManage: (ws: string) => void }) {
       </button>
       {open && (
         <div role="menu" className="fade-up absolute left-0 top-9 z-40 w-56 rounded-lg border border-line2 bg-bg p-1 shadow-xl shadow-black/20">
-          {cur && (
-            <Link href={`/w/${cur.slug}`} onClick={() => setOpen(false)} role="menuitem"
-              className="flex h-8 items-center gap-2 rounded-md px-2 hover:bg-hover">
-              <span className="grid h-5 w-5 place-items-center rounded bg-raised text-[11px] font-semibold">{cur.name[0]}</span>
-              {cur.name}{cur.slug === ws && <Icon name="check" size={13} className="ml-auto text-dim" />}
-            </Link>
-          )}
+          <div className="max-h-[260px] overflow-auto">
+            {(workspaces ?? (cur ? [{ slug: cur.slug, name: cur.name }] : [])).map((w) => (
+              <Link key={w.slug} href={`/w/${w.slug}`} onClick={() => setOpen(false)} role="menuitem"
+                className="flex h-8 items-center gap-2 rounded-md px-2 hover:bg-hover">
+                <span className="grid h-5 w-5 shrink-0 place-items-center rounded bg-raised text-[11px] font-semibold">{w.name[0]?.toUpperCase()}</span>
+                <span className="truncate">{w.name}</span>{w.slug === ws && <Icon name="check" size={13} className="ml-auto shrink-0 text-dim" />}
+              </Link>
+            ))}
+          </div>
           <div className="my-1 border-t border-line" />
           {cur && (
-            <button onClick={() => { setOpen(false); onManage(cur.slug); }} role="menuitem" className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-mute hover:bg-hover hover:text-fg">
-              <Icon name="sliders" size={13} />Connections
-            </button>
+            <>
+              <Link href={`/w/${cur.slug}/setup`} onClick={() => setOpen(false)} role="menuitem" className="flex h-8 items-center gap-2 rounded-md px-2 text-mute hover:bg-hover hover:text-fg">
+                <Icon name="list" size={13} />Set up
+              </Link>
+              <button onClick={() => { setOpen(false); onManage(cur.slug); }} role="menuitem" className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-mute hover:bg-hover hover:text-fg">
+                <Icon name="sliders" size={13} />Connections
+              </button>
+            </>
           )}
+          <Link href="/" onClick={() => setOpen(false)} role="menuitem" className="flex h-8 items-center gap-2 rounded-md px-2 text-mute hover:bg-hover hover:text-fg">
+            <Icon name="plus" size={13} />New workspace
+          </Link>
           <Link href="/" onClick={() => setOpen(false)} role="menuitem" className="flex h-8 items-center gap-2 rounded-md px-2 text-mute hover:bg-hover hover:text-fg">
             <Icon name="home" size={13} />All workspaces
           </Link>
@@ -92,7 +102,7 @@ function Topbar({ onPalette, onManage }: { onPalette: () => void; onManage: (ws:
       {ws && repo && (
         <nav aria-label="Location" className="flex min-w-0 items-center gap-1.5 text-[12.5px]">
           <span className="text-line2">/</span>
-          <Link href={`/w/${ws}/${repo}`} className={`font-medium ${parts.length ? "text-mute hover:text-fg" : ""}`}>{repo}</Link>
+          <Link href={`/w/${ws}/${repo}`} className={`font-medium ${parts.length ? "text-mute hover:text-fg" : ""}`}>{repo === "setup" ? "Set up" : repo}</Link>
           {parts.map((p, i) => (
             <Fragment key={i}><span className="text-line2">/</span><span className={`truncate font-mono text-[12px] ${i === parts.length - 1 ? "text-fg" : "text-dim"}`}>{p}</span></Fragment>
           ))}
@@ -115,10 +125,10 @@ interface Item { group: string; label: string; hint?: string; icon: IconName; hr
 function Palette({ open, onClose }: { open: boolean; onClose: () => void }) {
   const router = useRouter();
   const { repo: slug } = useLocation();
-  const { info, investigations, repos, repoByslug } = useData();
+  const { ws, info, investigations, repos, repoByslug, workspaces } = useData();
   // ponytail: investigations carry no repo, so questions open under the current (else first) repo
   const repoName = (slug && repoByslug(slug)) || repos[0];
-  const base = `/w/${WS}/${repoName ? repoSlug(repoName) : ""}`;
+  const base = `/w/${ws}/${repoName ? repoSlug(repoName) : ""}`;
   const files = useRepoFiles(open ? repoName : undefined).data?.files;
   const [q, setQ] = useState("");
   const [i, setI] = useState(0);
@@ -126,14 +136,15 @@ function Palette({ open, onClose }: { open: boolean; onClose: () => void }) {
 
   const items = useMemo<Item[]>(() => {
     const all: Item[] = [
-      ...(repoName ? investigations.map((v) => ({ group: "Questions", label: v.question, hint: v.file?.split("/").pop(), icon: "help" as const, href: `${base}/why/${v.id}` })) : []),
-      ...(info ? [{ group: "Workspaces", label: info.workspace.name, icon: "home" as const, href: `/w/${info.workspace.slug}` }] : []),
-      ...repos.map((r) => ({ group: "Repositories", label: r, icon: "repo" as const, href: `/w/${WS}/${repoSlug(r)}` })),
-      ...(files ?? []).map((p) => ({ group: "Files", label: p, icon: "file" as const, href: fileHref(base, p) })),
+      ...(ws && repoName ? investigations.map((v) => ({ group: "Questions", label: v.question, hint: v.file?.split("/").pop(), icon: "help" as const, href: `${base}/why/${v.id}` })) : []),
+      ...(workspaces ?? (info ? [info.workspace] : [])).map((w) => ({ group: "Workspaces", label: w.name, icon: "home" as const, href: `/w/${w.slug}` })),
+      ...(ws ? repos.map((r) => ({ group: "Repositories", label: r, icon: "repo" as const, href: `/w/${ws}/${repoSlug(r)}` })) : []),
+      ...(ws ? [{ group: "Workspaces", label: "Set up this workspace", icon: "list" as const, href: `/w/${ws}/setup` }] : []),
+      ...(ws && repoName ? (files ?? []).map((p) => ({ group: "Files", label: p, icon: "file" as const, href: fileHref(base, p) })) : []),
     ];
     const s = q.trim().toLowerCase();
     return (s ? all.filter((x) => x.label.toLowerCase().includes(s)) : all.filter((x) => x.group !== "Files")).slice(0, 30);
-  }, [q, base, repoName, investigations, info, repos, files]);
+  }, [q, base, ws, repoName, investigations, info, workspaces, repos, files]);
 
   if (!open) return null;
   const go = (it?: Item) => { if (it) { router.push(it.href); onClose(); } };
@@ -170,6 +181,21 @@ function Palette({ open, onClose }: { open: boolean; onClose: () => void }) {
   );
 }
 
+/** Compact strip while this workspace's ingestion runs; links to the live progress. */
+function SyncBanner() {
+  const { ws, sync } = useData();
+  const { repo } = useLocation();
+  if (!ws || sync?.state !== "running" || repo === "setup") return null;
+  const done = sync.streams.filter((s) => s.status !== "running").length;
+  return (
+    <div role="status" className="flex h-8 shrink-0 items-center gap-2 border-b border-line bg-panel px-4 text-[12px] text-mute">
+      <span aria-hidden className="h-3 w-3 animate-spin rounded-full border-[1.5px] border-accent border-t-transparent" />
+      Ingesting · {sync.totals.fetched} fetched · {done}/{sync.streams.length} streams
+      <Link href={`/w/${ws}/setup#progress`} className="ml-auto text-accent hover:underline">View progress</Link>
+    </div>
+  );
+}
+
 export default function Shell({ children }: { children: ReactNode }) {
   const [palette, setPalette] = useState(false);
   const [manage, setManage] = useState<string | null>(null);
@@ -182,6 +208,7 @@ export default function Shell({ children }: { children: ReactNode }) {
     <Manage.Provider value={setManage}>
       <div className="flex h-screen min-w-[1000px] flex-col">
         <Topbar onPalette={() => setPalette(true)} onManage={setManage} />
+        <SyncBanner />
         <main className="min-h-0 flex-1">{children}</main>
       </div>
       <Palette open={palette} onClose={() => setPalette(false)} />

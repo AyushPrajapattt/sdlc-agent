@@ -3,8 +3,8 @@ import Empty from "@/components/Empty";
 import { RepoPage } from "@/components/Gate";
 
 async function Inner({ params }: Pick<PageProps<"/w/[ws]/[repo]">, "params">) {
-  const { repo } = await params;
-  return <RepoPage repo={repo} />;
+  const { ws, repo } = await params;
+  return <RepoPage ws={ws} repo={repo} />;
 }
 
 export default function Page({ params }: PageProps<"/w/[ws]/[repo]">) {

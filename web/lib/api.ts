@@ -1,5 +1,8 @@
 // Typed fetch helpers for docs/workbench-api.md. Same-origin: next.config.ts proxies /api/* to FastAPI.
-import type { Graph, Investigation, Step } from "./types";
+import type {
+  Graph, IntegrationId, Investigation, InvestigationRow, Resource, SecretState, Step, SyncMode, SyncStatus, Targets, TargetsPatch,
+  TestResult, WorkbenchInfo, WorkspaceRow,
+} from "./types";
 
 export class ApiError extends Error {
   constructor(message: string, public status: number) { super(message); }
@@ -39,11 +42,33 @@ export async function api<T>(path: string, init?: { method?: string; body?: unkn
 export interface InvestigateBody { question: string; mode?: string; provider?: string; model?: string; file?: string; line?: number; repo?: string /* owner/repo, resolves the file */ }
 export interface InvestigateResult { investigation: Investigation; graph: Graph }
 
-/** POST /api/investigate and read its SSE stream: onStep per `trace` event, resolves on `investigation`, throws on `error`. */
-export async function investigate(body: InvestigateBody, onStep: (s: Step) => void, signal?: AbortSignal): Promise<InvestigateResult> {
+const W = (ws: string) => `/api/w/${encodeURIComponent(ws)}`;
+const slash = (repo: string) => repo.split("/").map(encodeURIComponent).join("/");
+
+/** Typed helpers for every endpoint of docs/workbench-api.md (v2). Workspace-scoped ones take `ws` first. */
+export const wsApi = {
+  list: () => api<WorkspaceRow[]>("/api/workspaces"),
+  create: (name: string, demo = false) => api<{ slug: string; name: string; demo: boolean }>("/api/workspaces", { method: "POST", body: { name, demo } }),
+  remove: (ws: string) => api<{ ok: true }>(`/api/workspaces/${encodeURIComponent(ws)}`, { method: "DELETE" }),
+  workbench: (ws: string) => api<WorkbenchInfo>(`${W(ws)}/workbench`),
+  saveTargets: (ws: string, body: TargetsPatch) => api<Targets>(`${W(ws)}/workspace`, { method: "PUT", body }),
+  saveSecrets: (ws: string, body: Record<string, string>) => api<Record<string, SecretState>>(`${W(ws)}/secrets`, { method: "PUT", body }),
+  test: (ws: string, id: IntegrationId) => api<TestResult>(`${W(ws)}/integrations/${id}/test`, { method: "POST" }),
+  resources: (ws: string, id: Exclude<IntegrationId, "llm">) => api<{ resources: Resource[] }>(`${W(ws)}/integrations/${id}/resources`),
+  syncStart: (ws: string, mode: SyncMode) => api<SyncStatus>(`${W(ws)}/sync`, { method: "POST", body: { mode } }),
+  syncStatus: (ws: string, signal?: AbortSignal) => api<SyncStatus>(`${W(ws)}/sync`, { signal }),
+  graph: (ws: string) => api<Graph>(`${W(ws)}/graph`),
+  investigations: (ws: string) => api<InvestigationRow[]>(`${W(ws)}/investigations`),
+  investigation: (ws: string, id: string) => api<{ investigation: Investigation; graph: Graph }>(`${W(ws)}/investigations/${encodeURIComponent(id)}`),
+  files: (ws: string, repo: string, signal?: AbortSignal) => api<{ files: string[] }>(`${W(ws)}/repo/${slash(repo)}/files`, { signal }),
+  fileUrl: (ws: string, repo: string, path: string) => `${W(ws)}/repo/${slash(repo)}/file?path=${encodeURIComponent(path)}`,
+};
+
+/** POST /api/w/{ws}/investigate and read its SSE stream: onStep per `trace` event, resolves on `investigation`, throws on `error`. */
+export async function investigate(ws: string, body: InvestigateBody, onStep: (s: Step) => void, signal?: AbortSignal): Promise<InvestigateResult> {
   let res: Response;
   try {
-    res = await fetch("/api/investigate", {
+    res = await fetch(`${W(ws)}/investigate`, {
       method: "POST", headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
       body: JSON.stringify(body), signal, cache: "no-store",
     });

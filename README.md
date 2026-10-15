@@ -23,27 +23,31 @@ More: [docs/architecture.md](docs/architecture.md) · scope and acceptance crite
 
 ```bash
 uv sync
-cp .env.example .env          # add an LLM key (AZURE_FOUNDRY_* or SARVAM_API_KEY)
-docker compose up -d          # Neo4j on bolt://localhost:7688 (+ a throwaway test DB on 7689)
-uv run hackfront serve        # API on http://127.0.0.1:8000
+cp .env.example .env          # Neo4j settings only; everything else is entered in the UI
+docker compose up -d          # Neo4j on bolt://localhost:7688 (+ throwaway test DBs on 7689/7690)
+uv run hackfront serve        # API on http://127.0.0.1:8000 (no UI of its own)
 cd web && npm ci && npm run dev   # the workbench UI on http://localhost:3000 (proxies /api to :8000)
 ```
 
-Open http://localhost:3000, **Connections → Load demo data** (or `uv run hackfront demo`), open `src/payments/gateway_client.py` and **click the `MAX_RETRIES = 3` line**: the agent investigates why, and each claim is marked supported / inferred / unknown with quotes verified against the sources. If port 3000 is taken, run `npm run dev -- --port 3100` and start the API with `HACKFRONT_ORIGINS=http://localhost:3100`.
+If port 3000 is taken: `npm run dev -- --port 3100`, and start the API with `HACKFRONT_ORIGINS=http://localhost:3100`.
 
-Terminal alternative: `uv run hackfront ask "Why are gateway retries capped at 3?"`. Questions the demo can answer: *Why are gateway retries capped at 3?* · *Why is the session TTL 15 minutes?*; and one it cannot (*Why did we choose Redis for the session cache?*), where the agent should say "not established".
+## Onboarding (all in the UI)
 
-## Connect your own sources
+Open http://localhost:3000. A **workspace** owns its connections, credentials, AI model and data view.
 
-Set targets in the UI (or `workspace.json`, see `workspace.example.json`) and tokens in `.env`; then **Sync sources** or `uv run hackfront sync`.
+- **Demo in one click:** *Try the demo workspace* creates "Acme Demo", ingests synthetic GitHub, Jira and Slack data through the real pipeline with live progress, then open a file and **click the `MAX_RETRIES = 3` line**. Each claim is marked supported / inferred / unknown with quotes verified against the sources. Only an AI model key is needed.
+- **Your own sources:** *Create workspace*, then on the setup page: enter credentials per source and **Save & test**, pick repos, Jira projects and Slack channels from the discovered lists, add the AI model key, **Start ingestion** and watch it live, then **Open workbench**.
 
-| Source | Needs |
+| Source | What to enter |
 |---|---|
-| GitHub | `GITHUB_TOKEN` (fine-grained, read-only: Contents, Pull requests, Metadata) + owner and repo names |
-| Jira Cloud | site URL, `JIRA_EMAIL` + `JIRA_API_TOKEN`, project keys |
-| Slack | `SLACK_BOT_TOKEN` with `channels:history` (`groups:history` for private), bot invited to channels; `workspace` = your Slack subdomain |
+| GitHub | fine-grained read-only token (Contents, Pull requests, Issues, Metadata) + owner |
+| Jira Cloud | site `https://<you>.atlassian.net`, email, API token (id.atlassian.com) |
+| Slack | bot token with `channels:history`, `groups:history`, `channels:read`, `users:read`; invite the bot to the channels; your Slack subdomain |
+| AI model | Azure Foundry (endpoint + key) or Sarvam (key); optional model name |
 
-LLM providers: `LLM_PROVIDER=azure|sarvam`, `LLM_MODEL` optional; switchable per question in the UI. Sarvam uses `https://api.sarvam.ai/v1/`.
+Keys are stored per workspace in `.hackfront/workspaces/<id>/secrets.json` on this machine, are write-only (the UI and API show only `••••1234`), and environment variables (`GITHUB_TOKEN`, `SARVAM_API_KEY`, ...) work as a fallback. CLI equivalents: `uv run hackfront demo`, `sync --workspace <id> [--deep]`, `workspaces`, `ask "..." --workspace <id>`.
+
+Demo questions: *Why are gateway retries capped at 3?* · *Why is the session TTL 15 minutes?*; and one it cannot answer (*Why did we choose Redis for the session cache?*), where the agent should say "not established".
 
 ## Test
 
@@ -56,10 +60,10 @@ Neo4j tests wipe `Artifact` nodes in the **test** database only.
 
 ## Layout
 
-`src/hackfront/ingest` contracts, sources (github/jira/slack), extraction (deterministic + text links), Neo4j storage, sync, demo data · `src/hackfront/agent` providers, harness, flow, verification · `src/hackfront/api` FastAPI · `web/` static UI · `research/` background papers.
+`src/hackfront/ingest` contracts, sources (github/jira/slack), extraction (deterministic + text links), Neo4j storage, sync, demo data · `src/hackfront/agent` providers, harness, flow, verification · `src/hackfront/api` FastAPI · `web/` Next.js workbench UI · `research/` background papers.
 
 ## Known limits
 
-- Local single-user tool: the API has no login and binds to 127.0.0.1; do not expose it. Run the agent with a read-only Neo4j user in any shared setup.
-- Sync is a bounded full backfill (20 pages per stream) through idempotent writes, not an incremental cursor; the UI flags incomplete streams. Text-derived edges are rebuilt from current text on every write; deleted source records are not removed from the graph.
+- Local single-user tool: the API has no login, credentials sit in a local file (not encrypted), and it binds to 127.0.0.1; do not expose it. Run the agent with a read-only Neo4j user in any shared setup.
+- Sync is a bounded full backfill (20 pages per stream, 100 with Deep history) through idempotent writes, not an incremental cursor; the UI flags incomplete streams. Text-derived edges are rebuilt from current text on every write; deleted source records are not removed from the graph.
 - Real-LLM behaviour (Azure, Sarvam) is covered by `tests/e2e` and needs your keys; unit tests use scripted models.

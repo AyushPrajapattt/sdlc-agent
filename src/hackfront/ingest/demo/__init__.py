@@ -11,10 +11,16 @@ from ..sources.jira import client as jira_client
 from ..sources.slack import client as slack_client
 from . import data as d
 
+SLACK_CHANNEL_NAMES = {"C01PAY": "payments-incident", "C02SUP": "support", "C03ENG": "eng-general"}
+SLACK_USERS = {"U_DANA": "dana", "U_RAJ": "raj", "U_MIRA": "mira", "U_LEE": "lee"}
+
 DEMO_WORKSPACE = {
+    "name": "Acme Demo",
+    "demo": True,
     "github": {"owner": d.OWNER, "repos": [d.REPO]},
     "jira": {"site": d.JIRA_SITE, "projects": ["PAY", "SEC"]},
-    "slack": {"workspace": d.SLACK_WS, "channels": list(d.SLACK_THREADS)},
+    "slack": {"workspace": d.SLACK_WS, "channels": list(d.SLACK_THREADS),
+              "channel_names": dict(SLACK_CHANNEL_NAMES), "users": dict(SLACK_USERS)},
 }
 
 
@@ -28,6 +34,11 @@ class GitHubDemoTransport:
     def get(self, url, headers, timeout):
         parts = urlsplit(url)
         q = {k: v[0] for k, v in parse_qs(parts.query).items()}
+        if parts.path == "/user":
+            return _json(gh_client.HTTPResponse, {"login": "acme-demo-bot"})
+        if re.fullmatch(rf"/(?:orgs|users)/{d.OWNER}/repos|/user/repos", parts.path):
+            return _json(gh_client.HTTPResponse, [{"full_name": f"{d.OWNER}/{d.REPO}", "private": False, "name": d.REPO,
+                                                   "pushed_at": "2025-01-01T00:00:00Z"}])
         path = parts.path.removeprefix(f"/repos/{d.OWNER}/{d.REPO}")
         m = re.fullmatch(r"/(?:pulls|issues)/(\d+)/(commits|reviews|comments)", path)
         if path == "/commits":
@@ -56,6 +67,11 @@ class JiraDemoTransport:
     def get(self, url, headers, timeout):
         parts = urlsplit(url)
         q = {k: v[0] for k, v in parse_qs(parts.query).items()}
+        if parts.path.endswith("/rest/api/3/myself"):
+            return _json(jira_client.HTTPResponse, {"displayName": "Acme Demo Bot", "emailAddress": "demo@acme-demo.example"})
+        if parts.path.endswith("/rest/api/3/project/search"):
+            return _json(jira_client.HTTPResponse, {"values": [{"key": "PAY", "name": "Payments"},
+                                                               {"key": "SEC", "name": "Security"}], "isLast": True})
         if parts.path.endswith("/search/jql"):
             project = re.search(r'project = "(\w+)"', q.get("jql", "")).group(1)
             issues = d.JIRA_ISSUES.get(project, [])
@@ -81,6 +97,14 @@ class SlackDemoTransport:
         parts = urlsplit(url)
         q = {k: v[0] for k, v in parse_qs(parts.query).items()}
         threads = d.SLACK_THREADS.get(q.get("channel", ""), {})
+        if parts.path.endswith("auth.test"):
+            return _json(slack_client.HTTPResponse, {"ok": True, "user": "hackfront-bot", "team": "acme-demo"})
+        if parts.path.endswith("conversations.list"):
+            return _json(slack_client.HTTPResponse, {"ok": True, "channels": [
+                {"id": i, "name": n, "is_private": False, "is_member": True} for i, n in SLACK_CHANNEL_NAMES.items()]})
+        if parts.path.endswith("users.list"):
+            return _json(slack_client.HTTPResponse, {"ok": True, "members": [
+                {"id": i, "name": n, "profile": {"display_name": n}} for i, n in SLACK_USERS.items()]})
         if parts.path.endswith("conversations.history"):
             roots = sorted((msgs[0] for msgs in threads.values()), key=lambda m: m["ts"], reverse=True)
             roots = [{k: v for k, v in m.items() if k != "thread_ts" or m.get("reply_count")} for m in roots]

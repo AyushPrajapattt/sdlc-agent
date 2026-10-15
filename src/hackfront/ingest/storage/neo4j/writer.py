@@ -22,6 +22,7 @@ def _node_properties(artifact: Artifact) -> dict[str, Any]:
         "workspace": artifact.source.workspace,
         "source_record_type": artifact.source.record_type,
         "source_id": artifact.source.source_id,
+        "scope": scope_of(artifact),
         "record_kind": artifact.kind.value,
         "schema_version": artifact.schema_version,
         "observed_at": artifact.observed_at,
@@ -56,6 +57,13 @@ def _node_properties(artifact: Artifact) -> dict[str, Any]:
             if value is not None:
                 properties[f"change_{name}"] = value
     return properties
+
+
+def scope_of(artifact: Artifact) -> str:
+    """The workspace-visibility scope: repo `owner/repo`, Jira project key, or Slack channel id."""
+    if artifact.source.provider == "slack":
+        return str(artifact.context.get("channel_id") or artifact.source.workspace)
+    return artifact.source.workspace
 
 
 def _stub_properties(identity) -> dict[str, Any]:

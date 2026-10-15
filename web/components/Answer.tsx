@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { lockedReason, useData } from "@/lib/data";
 import type { Claim, Status, Step } from "@/lib/types";
@@ -60,7 +61,7 @@ function Picker() {
 export default function Answer() {
   const { inv, base, running, ask, askError, provider, setProvider } = useWb();
   const { info } = useData();
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(useSearchParams().get("q") ?? ""); // the setup page's suggested questions arrive as ?q=
   const providers = (info?.providers ?? []).filter((p) => p.configured);
 
   const submit = (e: { preventDefault(): void }) => {

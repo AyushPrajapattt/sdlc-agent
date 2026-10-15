@@ -104,3 +104,13 @@ def test_admin_and_size_bomb_queries_rejected(q):
 
 def test_plain_read_still_accepted():
     assert T.validate("MATCH (a:Artifact) RETURN a.canonical_id").endswith("LIMIT 25")
+
+
+def test_out_of_scope_id_from_the_model_is_never_hydrated(graph):
+    graph.execute_query("MATCH (a:Artifact {canonical_id: $id}) SET a.scope = 'other/ws'", id=cid("issue", "issue1"))
+    q = "MATCH (n:Artifact) WHERE n.record_kind IN ['issue', 'pull_request'] RETURN n"
+    h = H.Harness(graph, cypher_llm=lambda question, err: q, scopes=["acme"])
+    rows = h.call("cypher_query", "issues and PRs")
+    assert {r["id"] for r in rows} == {cid("pull_request", "pr1"), cid("issue", "issue2")}
+    assert cid("issue", "issue1") not in h.seen
+    assert H.Harness(graph, cypher_llm=lambda question, err: q, scopes=[]).call("cypher_query", "x") == []

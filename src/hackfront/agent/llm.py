@@ -5,9 +5,12 @@ from __future__ import annotations
 import json
 import os
 import re
+from contextvars import ContextVar
 from urllib.parse import urlsplit
 
 from pydantic import ValidationError
+
+from .. import config
 
 PROVIDERS = {
     "azure": {"key": "AZURE_FOUNDRY_API_KEY", "model": "Kimi-K2.5"},
@@ -15,7 +18,9 @@ PROVIDERS = {
 }
 SARVAM_URL = "https://api.sarvam.ai/v1/"
 MAX_TOKENS = 16000  # Sarvam spends part of this on reasoning_content, which we ignore
-_clients: dict = {}  # provider -> client; tests inject fakes here
+_clients: dict = {}  # provider -> client; rebuilt when credentials change; tests inject fakes here
+_creds: dict = {}  # provider -> (credentials, client) it was built with
+_workspace: ContextVar[str | None] = ContextVar("llm_workspace", default=None)
 
 
 def foundry_base_url(endpoint: str) -> str:
@@ -26,8 +31,25 @@ def foundry_base_url(endpoint: str) -> str:
     return f"{parts.scheme}://{parts.netloc}/openai/v1/"
 
 
+def set_workspace(slug: str | None) -> None:
+    """Resolve credentials from this workspace's store (env fallback); None = environment only."""
+    _workspace.set(slug)
+
+
+def _setting(key: str) -> str:
+    """A config.SECRETS key: workspace store then env when a workspace is set, else env only."""
+    slug = _workspace.get()
+    value = config.get_secret(slug, key) if slug else os.environ.get(config.SECRETS[key][0])
+    return (value or "").strip()
+
+
+def _key(provider: str) -> str:
+    return _setting(f"{provider}_key")
+
+
 def default_provider() -> str:
-    return os.environ.get("LLM_PROVIDER", "").strip() or "azure"
+    chosen = _setting("llm_provider")
+    return chosen or next((n for n in PROVIDERS if _key(n)), "azure")
 
 
 def model_for(provider: str, model: str | None = None) -> str:
@@ -35,30 +57,35 @@ def model_for(provider: str, model: str | None = None) -> str:
         raise ValueError(f"unknown provider {provider!r}; choose one of {sorted(PROVIDERS)}")
     if model:
         return model
-    # LLM_MODEL names a model for the default provider only; another provider uses its own default.
-    env = os.environ.get("LLM_MODEL", "").strip() if provider == default_provider() else ""
-    return env or PROVIDERS[provider]["model"]
+    # llm_model names a model for the default provider only; another provider uses its own default.
+    configured = _setting("llm_model") if provider == default_provider() else ""
+    return configured or PROVIDERS[provider]["model"]
 
 
-def _key(provider: str) -> str:
-    return os.environ.get(PROVIDERS[provider]["key"], "").strip()
-
-
-def providers() -> list[dict]:
-    return [{"name": n, "model": model_for(n), "configured": bool(_key(n))} for n in PROVIDERS]
+def providers(workspace: str | None = None) -> list[dict]:
+    token = _workspace.set(workspace) if workspace else None
+    try:
+        return [{"name": n, "model": model_for(n), "configured": bool(_key(n))} for n in PROVIDERS]
+    finally:
+        if token:
+            _workspace.reset(token)
 
 
 def client(provider: str):
     if provider not in PROVIDERS:
         raise ValueError(f"unknown provider {provider!r}; choose one of {sorted(PROVIDERS)}")
-    if provider not in _clients:
-        key = _key(provider)
-        if not key:
-            raise RuntimeError(f"provider {provider} is not configured: set {PROVIDERS[provider]['key']}")
+    built = _creds.get(provider)  # (credentials, client) of the client we built
+    if provider in _clients and (built is None or built[1] is not _clients[provider]):
+        return _clients[provider]  # injected (tests): not ours, no credentials to compare
+    key = _key(provider)
+    if not key:
+        raise RuntimeError(f"provider {provider} is not configured: set {PROVIDERS[provider]['key']}")
+    endpoint = _setting("azure_endpoint") if provider == "azure" else ""
+    creds = (key, endpoint)
+    if built is None or built[0] != creds or provider not in _clients:
         from openai import OpenAI
 
         if provider == "azure":
-            endpoint = os.environ.get("AZURE_FOUNDRY_ENDPOINT", "").strip()
             if not endpoint:
                 raise RuntimeError("provider azure is not configured: set AZURE_FOUNDRY_ENDPOINT")
             url, headers = foundry_base_url(endpoint), {"api-key": key}
@@ -66,7 +93,22 @@ def client(provider: str):
             url, headers = SARVAM_URL, {"api-subscription-key": key}
         # The SDK sends Authorization: Bearer; each provider also reads its own header.
         _clients[provider] = OpenAI(base_url=url, api_key=key, default_headers=headers, timeout=180)
+        _creds[provider] = (creds, _clients[provider])
     return _clients[provider]
+
+
+def ping(provider: str) -> str:
+    """One tiny completion; returns reply text or raises RuntimeError with a message safe to show (no keys, no bodies)."""
+    try:
+        resp = client(provider).chat.completions.create(
+            model=model_for(provider), messages=[{"role": "user", "content": "Reply with: ok"}], max_tokens=32)
+        return clean(resp.choices[0].message.content) or "ok"
+    except (RuntimeError, ValueError):
+        raise  # our own messages (not configured / unknown provider)
+    except Exception as error:
+        status = getattr(error, "status_code", None)
+        raise RuntimeError(f"{provider} rejected the request (HTTP {status})" if status
+                           else f"could not reach {provider}") from None
 
 
 def clean(text: str | None) -> str:

@@ -208,11 +208,16 @@ def _anchor(anchor: dict | None) -> dict | None:
 
 
 def stream(question: str, mode: str = "why", provider: str | None = None, model: str | None = None,
-           driver=None, anchor: dict | None = None) -> Iterator[dict]:
+           driver=None, anchor: dict | None = None, scopes: list[str] | None = None,
+           workspace: str | None = None) -> Iterator[dict]:
     """Yield {event:trace,node,data,ms,update} per node, then {event:done,state,h,provider,model}; failures become one
-    error event. `update` is the raw node output (the investigation assembler reads it)."""
+    error event. `update` is the raw node output (the investigation assembler reads it).
+    scopes: the only artifact scopes the run may see (production always passes it); workspace: LLM credentials owner."""
     own = False
+    set_ws = getattr(llm, "set_workspace", None)  # ponytail: guard until llm.set_workspace lands everywhere
     try:
+        if set_ws:
+            set_ws(workspace)
         if mode not in P.MODES:
             raise ValueError(f"unknown mode {mode!r}; choose one of {list(P.MODES)}")
         if not isinstance(question, str) or not question.strip() or len(question) > MAX_QUESTION:
@@ -233,7 +238,7 @@ def stream(question: str, mode: str = "why", provider: str | None = None, model:
             return llm.structured(provider, P.CYPHER_GEN, P.CypherOut, model, card=SCHEMA_CARD, question=q,
                                   error=hint).cypher
 
-        h = Harness(driver, cypher_llm=gen)
+        h = Harness(driver, cypher_llm=gen, scopes=scopes)
         asked = question
         if anchor:
             asked += (f"\n\n(This question is about line {anchor['line']} of {anchor['file']}: {anchor['text']!r}."
@@ -255,14 +260,17 @@ def stream(question: str, mode: str = "why", provider: str | None = None, model:
         yield {"event": "error",
                "message": str(error)[:300] if own_msg else f"agent run failed ({type(error).__name__})"}
     finally:
+        if set_ws:
+            set_ws(None)
         if own and driver is not None:
             driver.close()
 
 
 def run(question: str, mode: str = "why", provider: str | None = None, model: str | None = None,
-        driver=None, anchor: dict | None = None) -> Iterator[dict]:
-    """Legacy event stream for /api/ask: trace events then one answer event derived from the verified claims."""
-    for ev in stream(question, mode, provider, model, driver, anchor):
+        driver=None, anchor: dict | None = None, scopes: list[str] | None = None,
+        workspace: str | None = None) -> Iterator[dict]:
+    """Event stream (CLI): trace events then one answer event derived from the verified claims."""
+    for ev in stream(question, mode, provider, model, driver, anchor, scopes, workspace):
         if ev["event"] == "trace":
             yield {"event": "trace", "node": ev["node"], "data": ev["data"]}
         elif ev["event"] == "error":

@@ -93,15 +93,73 @@ export interface CodeFile {
 
 export interface Connected { repos: string[]; jira: string[]; slack: string[] }
 export interface Provider { name: string; model: string; configured: boolean }
+
+/** Write-only secret state: values of secret keys are never returned, only a masked hint. */
+export interface SecretState { set: boolean; source: "workspace" | "env" | null; value?: string; hint?: string }
+export type Secrets = Record<string, SecretState>;
+export type IntegrationId = "github" | "jira" | "slack" | "llm";
+export interface IntegrationStatus { configured: boolean; secrets: Secrets; targets?: number }
+
+/** Connected targets of a workspace (PUT /api/w/{ws}/workspace). github.repos are bare names under one owner. */
+export interface Targets {
+  name?: string;
+  github: { owner: string; repos: string[] };
+  jira: { site: string; projects: string[] };
+  slack: { workspace: string; channels: string[] };
+}
+
+/** PUT /workspace merges per section: send only what changes. */
+export interface TargetsPatch {
+  name?: string;
+  github?: Partial<Targets["github"]>;
+  jira?: Partial<Targets["jira"]>;
+  slack?: Partial<Targets["slack"]>;
+}
+
 export interface WorkbenchInfo {
-  workspace: { slug: string; name: string };
+  // `targets` is optional: when the server includes the clean workspace here the UI prefills Jira site / Slack subdomain.
+  workspace: { slug: string; name: string; demo: boolean; targets?: Targets };
   connected: Connected;
   catalog: Connected;
   indexed_repos: string[];
   neo4j: { ok: boolean; counts?: Record<string, number> };
-  sources: Record<"github" | "jira" | "slack", { token_present: boolean }>;
+  integrations: Record<IntegrationId, IntegrationStatus>;
   providers: Provider[];
+  names?: { channels: Record<string, string>; users: Record<string, string> };
 }
+
+export interface WorkspaceRow {
+  slug: string;
+  name: string;
+  demo: boolean;
+  connected: { repos: number; jira: number; slack: number };
+  last_sync?: { state: string; finished_at?: string | null } | null;
+}
+
+export type StreamStatus = "running" | "done" | "incomplete" | "failed";
+export interface SyncStream {
+  stream: string;
+  status: StreamStatus;
+  pages: number;
+  fetched: number;
+  persisted: number;
+  errors: { stage: string; type: string; message: string }[];
+}
+export type SyncMode = "standard" | "deep";
+export interface SyncStatus {
+  state: "idle" | "running" | "done" | "failed";
+  mode: SyncMode;
+  started_at?: string | null;
+  finished_at?: string | null;
+  streams: SyncStream[];
+  totals: { fetched: number; persisted: number; errors: number };
+  graph?: { artifacts: number; edges: number; stubs: number } | null;
+  complete: boolean;
+  error?: string | null;
+}
+
+export interface Resource { id: string; name: string; private?: boolean; detail?: string }
+export interface TestResult { ok: boolean; detail: string; account?: string }
 
 export const KINDS: { kind: Kind; label: string; color: string }[] = [
   { kind: "issue", label: "Issue", color: "#fb923c" },

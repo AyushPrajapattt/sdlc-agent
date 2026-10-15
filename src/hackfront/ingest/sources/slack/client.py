@@ -73,6 +73,53 @@ class SlackClient:
         return cls(os.environ.get("SLACK_BOT_TOKEN"), **kwargs)
 
     def _call(self, method: str, params: dict) -> Page:
+        payload = self._request(method, params)
+        messages = payload.get("messages")
+        metadata = payload.get("response_metadata")
+        if not isinstance(messages, list) or any(not isinstance(item, dict) for item in messages):
+            raise SlackAPIError("expected Slack message objects")
+        next_cursor = metadata.get("next_cursor") if isinstance(metadata, dict) else None
+        if payload.get("has_more") is True and not next_cursor:
+            raise SlackAPIError("Slack indicated more messages without returning a cursor")
+        return Page(tuple(messages), next_cursor if isinstance(next_cursor, str) and next_cursor else None)
+
+    def auth_test(self) -> dict:
+        """{user, team} of the token (credential test)."""
+        payload = self._request("auth.test", {})
+        return {"user": str(payload.get("user") or ""), "team": str(payload.get("team") or "")}
+
+    def _list(self, method: str, field: str, params: dict) -> list[dict]:
+        out, cursor = [], ""
+        for _ in range(5):
+            payload = self._request(method, {**params, **({"cursor": cursor} if cursor else {})})
+            items = payload.get(field)
+            if not isinstance(items, list):
+                raise SlackAPIError(f"expected Slack {field}")
+            out += [i for i in items if isinstance(i, dict)]
+            meta = payload.get("response_metadata")
+            cursor = meta.get("next_cursor") if isinstance(meta, dict) else ""
+            if not isinstance(cursor, str) or not cursor:
+                break
+        return out
+
+    def channels(self) -> list[dict]:
+        """[{id, name, is_private, is_member}] of public and private channels the token can see."""
+        rows = self._list("conversations.list", "channels", {
+            "types": "public_channel,private_channel", "exclude_archived": "true", "limit": 200})
+        return [{"id": c["id"], "name": str(c.get("name") or c["id"]), "is_private": bool(c.get("is_private")),
+                 "is_member": bool(c.get("is_member"))} for c in rows if isinstance(c.get("id"), str)]
+
+    def users(self) -> dict[str, str]:
+        """user id -> display name (profile.display_name, else real_name, else name); deleted users skipped."""
+        out = {}
+        for u in self._list("users.list", "members", {"limit": 200}):
+            if u.get("deleted") or not isinstance(u.get("id"), str):
+                continue
+            profile = u.get("profile") if isinstance(u.get("profile"), dict) else {}
+            out[u["id"]] = str(profile.get("display_name") or u.get("real_name") or u.get("name") or u["id"])
+        return out
+
+    def _request(self, method: str, params: dict) -> dict:
         response = self.transport.get(
             f"{API_BASE}/{method}?{urlencode(params)}",
             {
@@ -92,14 +139,7 @@ class SlackClient:
             code = payload.get("error") if isinstance(payload, dict) else None  # e.g. not_in_channel
             raise SlackAPIError(f"Slack API error: {code if isinstance(code, str) and code.isidentifier() else 'unsuccessful'}",
                                 response.status)
-        messages = payload.get("messages")
-        metadata = payload.get("response_metadata")
-        if not isinstance(messages, list) or any(not isinstance(item, dict) for item in messages):
-            raise SlackAPIError("expected Slack message objects")
-        next_cursor = metadata.get("next_cursor") if isinstance(metadata, dict) else None
-        if payload.get("has_more") is True and not next_cursor:
-            raise SlackAPIError("Slack indicated more messages without returning a cursor")
-        return Page(tuple(messages), next_cursor if isinstance(next_cursor, str) and next_cursor else None)
+        return payload
 
     def thread_page(
         self,

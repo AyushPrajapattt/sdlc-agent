@@ -51,37 +51,42 @@ _RET = """a.canonical_id AS id, a.record_kind AS kind, a.title AS title,
        left(coalesce(a.text, ''), $n) AS text, a.source_uri AS url,
        a.event_time AS time, coalesce(a.change_paths, []) AS paths"""
 _REAL = "coalesce(a.is_stub, false) = false"
+# Workspace isolation: only artifacts whose scope is in $scopes. $scopes IS NULL = unscoped (tests only; production always
+# passes a list and an empty list matches nothing). Stubs carry no data, so a path may pass through one.
+_IN = "($scopes IS NULL OR a.scope IN $scopes)"
+_PATH_IN = "($scopes IS NULL OR all(n IN nodes(p) WHERE coalesce(n.is_stub, false) OR n.scope IN $scopes))"
 _VIA = "{rel: type(r), origin: coalesce(r.origin, 'structural'), from: startNode(r).canonical_id}"
 
 CYPHER = {
     "find_text": f"""MATCH (a:Artifact)
-WHERE {_REAL} AND all(w IN $words WHERE toLower(coalesce(a.title, '') + ' ' + coalesce(a.text, '')) CONTAINS w)
+WHERE {_REAL} AND {_IN} AND all(w IN $words WHERE toLower(coalesce(a.title, '') + ' ' + coalesce(a.text, '')) CONTAINS w)
 RETURN {_RET} ORDER BY a.event_time DESC LIMIT $limit""",
     # newest $limit matches, returned chronologically
     "file_history": f"""MATCH (a:Artifact)
-WHERE {_REAL} AND any(p IN coalesce(a.change_paths, []) WHERE p CONTAINS $path)
+WHERE {_REAL} AND {_IN} AND any(p IN coalesce(a.change_paths, []) WHERE p CONTAINS $path)
 WITH a ORDER BY a.event_time DESC LIMIT $limit
 RETURN {_RET} ORDER BY a.event_time ASC""",
-    "neighbors": f"""MATCH (:Artifact {{canonical_id: $id}})-[r]-(a:Artifact)
-WHERE {_REAL}
+    "neighbors": f"""MATCH (s:Artifact {{canonical_id: $id}})-[r]-(a:Artifact)
+WHERE {_REAL} AND {_IN} AND ($scopes IS NULL OR s.scope IN $scopes)
 RETURN {_RET}, {_VIA} AS via LIMIT $limit""",
     "evidence_chain": f"""MATCH p = (s:Artifact {{canonical_id: $id}})-[:REFERENCES|CONTAINS|REPLIES_TO|CHANGES*1..3]-(a:Artifact)
-WHERE a <> s AND {_REAL}
+WHERE a <> s AND {_REAL} AND {_IN} AND {_PATH_IN}
   AND all(e IN relationships(p) WHERE NOT (coalesce(e.locator, '') STARTS WITH '$.parents' OR e.locator = '$.base.sha'))
 WITH a, p ORDER BY length(p)
 WITH a, head(collect(p)) AS best
 WITH a, length(best) AS hops, last(relationships(best)) AS r
 RETURN {_RET}, hops, {_VIA} AS via ORDER BY hops, a.event_time LIMIT $limit""",
-    "get": f"""MATCH (a:Artifact {{canonical_id: $id}}) WHERE {_REAL}
+    "get": f"""MATCH (a:Artifact {{canonical_id: $id}}) WHERE {_REAL} AND {_IN}
 RETURN {_RET} LIMIT 1""",
-    "hydrate": f"""MATCH (a:Artifact) WHERE a.canonical_id IN $ids AND {_REAL}
+    "hydrate": f"""MATCH (a:Artifact) WHERE a.canonical_id IN $ids AND {_REAL} AND {_IN}
 RETURN {_RET} LIMIT $limit""",
-    "edges_among":"""MATCH (a:Artifact)-[r]->(b:Artifact)
+    "edges_among": """MATCH (a:Artifact)-[r]->(b:Artifact)
 WHERE a.canonical_id IN $ids AND b.canonical_id IN $ids
+  AND ($scopes IS NULL OR (a.scope IN $scopes AND b.scope IN $scopes))
 RETURN a.canonical_id AS source, b.canonical_id AS target, type(r) AS rel,
        coalesce(r.origin, 'structural') AS origin, r.locator AS locator LIMIT 300""",
 }
-_SAMPLE = {"words": ["x"], "path": "x", "id": "x", "ids": ["x"], "limit": 1, "n": 1}
+_SAMPLE = {"words": ["x"], "path": "x", "id": "x", "ids": ["x"], "limit": 1, "n": 1, "scopes": ["x"]}
 _checked: set[int] = set()
 
 
@@ -126,9 +131,11 @@ def words(query: str) -> list[str]:
 
 
 class Harness:
-    def __init__(self, driver, database: str | None = None, cypher_llm=None):
-        """cypher_llm(question, error_or_None) -> cypher string; enables cypher_query."""
+    def __init__(self, driver, database: str | None = None, cypher_llm=None, scopes: list[str] | None = None):
+        """cypher_llm(question, error_or_None) -> cypher string; enables cypher_query.
+        scopes: only artifacts with scope in this list are ever returned (None = unscoped, tests only; [] = nothing)."""
         self.driver, self.database, self.cypher_llm = driver, database, cypher_llm
+        self.scopes = None if scopes is None else list(scopes)
         self.cypher_log: list[dict] = []  # compact trace items for cypher_query; drained by the flow
         self.seen: set[str] = set()  # ids the planner may use: retrieved evidence + seeds from the question
 
@@ -170,7 +177,7 @@ class Harness:
         if not ids:
             return []
         by_id = {r["id"]: r for r in execute(self.driver, CYPHER["hydrate"], self.database,
-                                             ids=ids, limit=len(ids), n=TEXT_LEN)}
+                                             ids=ids, limit=len(ids), n=TEXT_LEN, scopes=self.scopes)}
         return [by_id[i] for i in ids if i in by_id][:MAX_ROWS]
 
     def call(self, tool: str, arg: str) -> list[dict]:
@@ -183,12 +190,12 @@ class Harness:
             ws = words(arg)
             if not ws:
                 raise HarnessError("query has no searchable words")
-            params = {"words": ws, "limit": LIMIT, "n": TEXT_LEN}
+            params = {"words": ws, "limit": LIMIT, "n": TEXT_LEN, "scopes": self.scopes}
         elif tool == "file_history":
-            params = {"path": arg.replace("\\", "/"), "limit": LIMIT, "n": TEXT_LEN}
+            params = {"path": arg.replace("\\", "/"), "limit": LIMIT, "n": TEXT_LEN, "scopes": self.scopes}
         else:
             params = {"id": arg, "n": FULL_LEN if tool == "get" else TEXT_LEN,
-                      "limit": CHAIN_LIMIT if tool == "evidence_chain" else LIMIT}
+                      "limit": CHAIN_LIMIT if tool == "evidence_chain" else LIMIT, "scopes": self.scopes}
         rows, seen_ids = [], set()
         for row in execute(self.driver, CYPHER[tool], self.database, **params):
             if row["id"] in seen_ids:  # neighbors may return a node once per edge
@@ -200,4 +207,4 @@ class Harness:
 
     def edges_among(self, ids) -> list[dict]:
         ids = [i for i in ids if isinstance(i, str) and ID_RE.fullmatch(i)]
-        return execute(self.driver, CYPHER["edges_among"], self.database, ids=ids) if ids else []
+        return execute(self.driver, CYPHER["edges_among"], self.database, ids=ids, scopes=self.scopes) if ids else []

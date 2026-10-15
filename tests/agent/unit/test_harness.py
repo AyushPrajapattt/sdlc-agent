@@ -111,3 +111,46 @@ def test_server_rejects_write_in_read_route(graph):
     with pytest.raises(Exception):  # noqa: B017
         graph.execute_query(Query("CREATE (:Artifact {canonical_id: 'evil'})"), routing_="r", database_=H.neo4j_database())
     assert graph.execute_query("MATCH (n {canonical_id: 'evil'}) RETURN n").records == []
+
+
+# ---- workspace scoping (every artifact in the fixture graph has scope "acme")
+def set_scope(graph, canonical_id, scope):
+    graph.execute_query("MATCH (a:Artifact {canonical_id: $id}) SET a.scope = $s", id=canonical_id, s=scope)
+
+
+def every_tool(h):
+    pr = cid("pull_request", "pr1")
+    h.see([pr, cid("commit", "c1"), cid("issue", "issue1")])
+    return [h.call("find_text", "gateway retries"), h.call("file_history", "pay/gateway.py"), h.call("neighbors", pr),
+            h.call("evidence_chain", pr), h.call("get", pr), h.edges_among([pr, cid("commit", "c1")])]
+
+
+@pytest.mark.parametrize("scopes", [[], ["other/ws"], ["PAY", "C1"]])
+def test_foreign_or_empty_scope_returns_nothing(graph, scopes):
+    assert every_tool(H.Harness(graph, scopes=scopes)) == [[]] * 6
+
+
+def test_own_scope_matches_unscoped(graph):
+    assert every_tool(H.Harness(graph, scopes=["acme", "x"])) == every_tool(H.Harness(graph))
+
+
+def test_chain_does_not_leak_through_out_of_scope_node(graph):
+    set_scope(graph, cid("thread", "thread1"), "other/ws")  # pr1 -> thread1 <- msg1
+    pr = cid("pull_request", "pr1")
+    h = H.Harness(graph, scopes=["acme"])
+    h.see([pr])
+    got = {r["id"] for r in h.call("evidence_chain", pr)}
+    assert cid("message", "msg1") not in got and cid("thread", "thread1") not in got
+    assert {cid("commit", "c1"), cid("issue", "issue1"), cid("issue", "issue2")} <= got  # in-scope paths (incl. via a stub) stay
+    assert cid("thread", "thread1") not in {r["id"] for r in h.call("neighbors", pr)}
+    assert cid("thread", "thread1") not in {r["id"] for r in h.call("find_text", "cap gateway retries")}
+    assert h.edges_among([pr, cid("thread", "thread1")]) == []
+    assert cid("message", "msg1") in {r["id"] for r in H.Harness(graph).call("find_text", "agreed three")}  # unscoped sees it
+
+
+def test_out_of_scope_id_named_by_planner_returns_nothing(graph):
+    set_scope(graph, cid("issue", "issue1"), "other/ws")
+    h = H.Harness(graph, scopes=["acme"])
+    h.see([cid("issue", "issue1")])  # a planner (or a question) can name any well-formed id
+    assert h.call("get", cid("issue", "issue1")) == [] and h.call("neighbors", cid("issue", "issue1")) == []
+    assert h.call("evidence_chain", cid("issue", "issue1")) == []
