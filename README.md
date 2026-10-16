@@ -49,6 +49,10 @@ Keys are stored per workspace in `.hackfront/workspaces/<id>/secrets.json` on th
 
 Demo questions: *Why are gateway retries capped at 3?* · *Why is the session TTL 15 minutes?*; and one it cannot answer (*Why did we choose Redis for the session cache?*), where the agent should say "not established".
 
+## Deploy
+
+UI on Vercel, API in a container with a disk, database on Neo4j Aura: see [docs/deploy.md](docs/deploy.md) (`Dockerfile` + `render.yaml` are ready; set `HACKFRONT_ACCESS_TOKEN` on the API and `HACKFRONT_API` / `HACKFRONT_API_TOKEN` on Vercel).
+
 ## Test
 
 ```bash

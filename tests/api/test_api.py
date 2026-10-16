@@ -32,6 +32,19 @@ def test_jira_site_must_be_atlassian_cloud():
     assert config.validate_workspace({"jira": {"site": "https://acme.atlassian.net", "projects": ["PAY"]}})
 
 
+def test_access_token_guards_every_api_route_but_not_health(monkeypatch):
+    assert client.get("/api/workspaces").status_code == 200  # no token configured: open (local dev)
+    monkeypatch.setenv("HACKFRONT_ACCESS_TOKEN", "s3cret-token")
+    assert client.get("/health").json() == {"ok": True}
+    for headers in ({}, {"Authorization": "Bearer wrong"}, {"Authorization": "s3cret-token"}, {"Authorization": "bearer s3cret-token"}):
+        assert client.get("/api/workspaces", headers=headers).status_code == 401, headers
+    assert client.post("/api/workspaces", json={"name": "a"}).status_code == 401
+    ok = {"Authorization": "Bearer s3cret-token"}
+    assert client.get("/api/workspaces", headers=ok).status_code == 200
+    assert client.post("/api/workspaces", json={"name": "a"}, headers=ok).status_code == 201
+    assert "s3cret-token" not in client.get("/api/workspaces", headers=ok).text
+
+
 def test_ui_on_any_localhost_port_is_trusted_but_lookalikes_are_not():
     bad = {"name": "  "}  # rejected by validation (422) after the origin check: no side effects
     for ok in ("http://localhost:3001", "http://127.0.0.1:4173", "http://localhost:3100", "http://[::1]:3000"):

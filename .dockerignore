@@ -1,0 +1,13 @@
+.git
+.claude
+.genesis
+.venv
+.env
+.hackfront
+workspace.json
+web
+tests
+docs
+research
+**/__pycache__
+**/*.pyc
