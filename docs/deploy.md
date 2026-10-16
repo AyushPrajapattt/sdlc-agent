@@ -1,7 +1,11 @@
 # Deploy (Vercel UI + container API + Neo4j Aura)
 
-The API cannot run on Vercel's serverless functions: it runs sync jobs in background threads, streams answers for minutes,
-and stores workspaces and keys on disk. So: **UI on Vercel (already done), API in a container with a disk, DB on Neo4j Aura.**
+Vercel can run a Docker image (`Dockerfile.vercel`, served as a stateless Vercel Function), but this API is not stateless: it keeps
+workspaces, saved keys, investigations and sync status on local disk, runs sync jobs in background threads tracked in memory, and
+streams answers for minutes. Those need a persistent disk and a long-lived process, which Vercel containers do not provide
+(no disk, scale-to-zero after 5 idle minutes, function duration limits). So the zero-effort setup is:
+**UI on Vercel (already done), API in a container with a disk (Render), DB on Neo4j Aura.**
+Running the API on Vercel too is possible after making it stateless (state in a database, durable/resumable sync).
 
 ## 1. Database: Neo4j Aura Free (2 min)
 console.neo4j.io → New instance → **Free**. Save the connection URI (`neo4j+s://xxxx.databases.neo4j.io`), username and
