@@ -29,7 +29,7 @@ uv run hackfront serve        # API on http://127.0.0.1:8000 (no UI of its own)
 cd web && npm ci && npm run dev   # the workbench UI on http://localhost:3000 (proxies /api to :8000)
 ```
 
-If port 3000 is taken: `npm run dev -- --port 3100`, and start the API with `HACKFRONT_ORIGINS=http://localhost:3100`.
+If port 3000 is taken, run the UI on another port (`npm run dev -- --port 3100`); any localhost port works. To open the UI from another address (e.g. a LAN IP), start the API with `HACKFRONT_ORIGINS=http://<that-address>:<port>`.
 
 ## Onboarding (all in the UI)
 

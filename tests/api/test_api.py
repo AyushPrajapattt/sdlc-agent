@@ -30,3 +30,11 @@ def test_jira_site_must_be_atlassian_cloud():
         with pytest.raises(ValueError):
             config.validate_workspace({"jira": {"site": site, "projects": []}})
     assert config.validate_workspace({"jira": {"site": "https://acme.atlassian.net", "projects": ["PAY"]}})
+
+
+def test_ui_on_any_localhost_port_is_trusted_but_lookalikes_are_not():
+    bad = {"name": "  "}  # rejected by validation (422) after the origin check: no side effects
+    for ok in ("http://localhost:3001", "http://127.0.0.1:4173", "http://localhost:3100", "http://[::1]:3000"):
+        assert client.post("/api/workspaces", json=bad, headers={"Origin": ok}).status_code == 422, ok
+    for evil in ("http://localhost.evil.com", "http://evil.com:3000", "https://127.0.0.1.evil.example", "null"):
+        assert client.post("/api/workspaces", json=bad, headers={"Origin": evil}).status_code == 403, evil
