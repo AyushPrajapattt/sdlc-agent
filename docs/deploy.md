@@ -5,8 +5,9 @@ investigations and sync status in the same database as the evidence graph, so th
 idle sleep loses nothing. (Locally the default stays `HACKFRONT_STATE=file`.) Free hosting is therefore:
 **UI on Vercel (already done), API on a free container host, DB on Neo4j Aura Free.**
 
-Why not the API on Vercel too? Vercel can run Docker images, but as stateless Functions with a 300 s request cap on the free plan,
-no durable background jobs (free cron runs once a day) and in-memory sync tracking. See the notes at the bottom.
+The API can also run on Vercel itself (everything on Vercel + Aura): see [deploy-vercel.md](deploy-vercel.md). It works for the demo and small
+repos; the 300 s request cap on the free plan means a first ingest of a large repo cannot finish there, which is why this Render
+setup (no time cap) stays the recommendation for big repos.
 
 ## 1. Database: Neo4j Aura Free (2 min)
 console.neo4j.io → New instance → **Free**. Save the connection URI (`neo4j+s://xxxx.databases.neo4j.io`), username and password
@@ -48,7 +49,6 @@ people on your Vercel team can view) and use shareable links for guests; passwor
 shared-password gate. Saved keys are encrypted with `HACKFRONT_SECRET_KEY`, but anyone with the database credentials plus that key
 can read them.
 
-## Why not the API on Vercel (notes)
-Vercel Docker/Python functions are stateless (state now solved), capped at 300 s per request on Hobby (a first ingest of a real repo
-exceeds that), have no durable background jobs on the free plan, and the sync job registry and locks here are per process. It becomes
-possible after making sync resumable and driven in chunks; free Hobby limits (4 CPU-hours a month) still apply.
+## The API on Vercel instead
+See [deploy-vercel.md](deploy-vercel.md): state is in Neo4j, sync runs inside the request with a 240 s budget, and a heartbeat lets any
+instance report or refuse a sync. A first ingest of a large repo still needs incremental/chunked sync to complete there.

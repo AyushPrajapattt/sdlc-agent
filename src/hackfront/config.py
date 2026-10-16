@@ -57,16 +57,39 @@ def neo4j_database() -> str:
     return os.environ.get("NEO4J_DATABASE", "neo4j")
 
 
+_shared_drivers: dict = {}
+
+
+class _SharedDriver:
+    """Process-wide driver. Handlers call close() after each request; here that is a no-op, so a serverless instance
+    (or a long-lived one) opens ONE TLS connection pool to Neo4j instead of one per request."""
+
+    def __init__(self, driver):
+        self._driver = driver
+
+    def close(self) -> None:
+        pass
+
+    def __getattr__(self, name):
+        return getattr(self._driver, name)
+
+
 def neo4j_driver():
-    """Verified Neo4j driver from NEO4J_URI/USERNAME/PASSWORD (read-only user recommended for the agent)."""
+    """Shared Neo4j driver from NEO4J_URI/USERNAME/PASSWORD, connectivity verified once per process."""
     from neo4j import GraphDatabase
 
-    uri, user, password = (os.environ.get(k) for k in ("NEO4J_URI", "NEO4J_USERNAME", "NEO4J_PASSWORD"))
-    if not all((uri, user, password)):
+    key = tuple(os.environ.get(k) for k in ("NEO4J_URI", "NEO4J_USERNAME", "NEO4J_PASSWORD"))
+    if not all(key):
         raise RuntimeError("NEO4J_URI, NEO4J_USERNAME and NEO4J_PASSWORD must be set (see .env.example)")
-    driver = GraphDatabase.driver(uri, auth=(user, password))
-    driver.verify_connectivity()
-    return driver
+    if key not in _shared_drivers:
+        driver = GraphDatabase.driver(key[0], auth=(key[1], key[2]))
+        try:
+            driver.verify_connectivity()
+        except Exception:
+            driver.close()
+            raise
+        _shared_drivers[key] = _SharedDriver(driver)
+    return _shared_drivers[key]
 
 
 # ---------------------------------------------------------------- workspaces

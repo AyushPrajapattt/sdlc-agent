@@ -126,13 +126,18 @@ function Inner({ ws, children }: { ws: string | undefined; children: ReactNode }
 
   const startSync = useCallback(async (mode: SyncMode) => {
     if (!ws) return;
+    // Show "running" now so polling starts at once: on serverless hosts the start request stays open until the sync ends
+    // (the server runs it inline) and progress arrives through the polled status; elsewhere the request returns immediately.
+    setSync({ state: "running", mode, started_at: new Date().toISOString(), streams: [], totals: { fetched: 0, persisted: 0, errors: 0 }, complete: false });
     try {
-      setSync(await wsApi.syncStart(ws, mode));
+      const status = await wsApi.syncStart(ws, mode);
+      setSync(status);
+      if (status.state !== "running") refresh(); // finished inside the request: load the new artifacts
     } catch (e) {
-      if (e instanceof ApiError && e.status === 409) wsApi.syncStatus(ws).then(setSync, () => {}); // already running: follow it
+      wsApi.syncStatus(ws).then(setSync, () => {}); // already running (409) or failed to start: show the real state
       throw e;
     }
-  }, [ws]);
+  }, [ws, refresh]);
 
   const absorb = useCallback((g: Graph) => {
     setById((m) => ({ ...m, ...Object.fromEntries(g.nodes.map((n) => [n.id, n])) }));

@@ -26,7 +26,9 @@ CACHE_SECONDS = 2.0  # neo4j reads: a page load makes ~15 of them; other instanc
 
 
 def backend():
-    return Neo4jState() if os.environ.get("HACKFRONT_STATE", "file").lower() == "neo4j" else FileState()
+    """On Vercel (VERCEL is set; its filesystem is read-only) the default is neo4j; elsewhere file."""
+    chosen = (os.environ.get("HACKFRONT_STATE") or ("neo4j" if os.environ.get("VERCEL") else "file")).lower()
+    return Neo4jState() if chosen == "neo4j" else FileState()
 
 
 def _meta(doc: dict) -> dict:

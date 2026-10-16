@@ -1,0 +1,15 @@
+web
+tests
+docs
+research
+.genesis
+.claude
+.hackfront
+.venv
+.env
+.git
+Dockerfile
+.dockerignore
+render.yaml
+docker-compose.yml
+workspace.example.json
