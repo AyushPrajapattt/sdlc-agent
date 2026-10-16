@@ -8,7 +8,7 @@ console.neo4j.io → New instance → Free. Keep the URI (`neo4j+s://…`), user
 
 ## 2. API project (new Vercel project)
 Import the repo, **Root Directory: the repository root** (leave empty). Vercel detects the FastAPI app from `src/main.py` and installs the
-dependencies from `pyproject.toml`; `.vercelignore` keeps `web/`, tests and docs out of the bundle. Environment variables:
+dependencies from `pyproject.toml`; `.vercelignore` keeps tests and docs out of the bundle (never list `web` there: for the UI project, whose Root Directory is `web`, Vercel falls back to this root file and it would strip the app). Environment variables:
 
 | Variable | Value |
 |---|---|
