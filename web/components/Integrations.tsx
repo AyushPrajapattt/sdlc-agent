@@ -65,8 +65,9 @@ function SecretInput({ id, label, state, value, onChange, placeholder }: {
   const stored = !!state?.set && !replacing;
   useEffect(() => { setReplacing(false); }, [state?.hint, state?.set]); // a successful save returns to the masked view
   return (
-    <div className="flex items-center gap-2 text-[11.5px] text-dim">
-      <label htmlFor={id} className="w-[104px] shrink-0">{label}</label>
+    <div className="flex flex-col gap-1 text-[11.5px] text-dim">
+      <label htmlFor={id}>{label}</label>
+      <div className="flex items-center gap-2">
       {stored ? (
         <>
           <span id={id} className="flex h-8 min-w-0 flex-1 items-center gap-1.5 truncate rounded-md border border-line px-2 font-mono text-[12px] text-mute">
@@ -81,6 +82,7 @@ function SecretInput({ id, label, state, value, onChange, placeholder }: {
           {state?.set && <button type="button" onClick={() => { setReplacing(false); onChange(""); }} className={btnGhost}>Cancel</button>}
         </>
       )}
+      </div>
     </div>
   );
 }
@@ -168,7 +170,7 @@ function Picker({ kind, reloadKey }: { kind: Source; reloadKey: number }) {
   const sub = (r: Resource) => (kind === "slack" ? (r.name !== r.id ? r.id : "") : kind === "jira" ? (r.name !== r.id ? r.name : "") : r.detail ?? "");
 
   return (
-    <section aria-label={spec.picker} className="rounded-lg border border-line bg-panel p-3">
+    <section aria-label={spec.picker} className="rounded-lg border border-line bg-bg p-3">
       <div className="mb-2 flex items-center gap-2">
         <h4 className="label">{spec.picker}</h4>
         <span className="text-[11.5px] text-dim">{sel.length} selected</span>
@@ -182,7 +184,7 @@ function Picker({ kind, reloadKey }: { kind: Source; reloadKey: number }) {
             <Icon name="search" size={12} className="pointer-events-none absolute left-2 top-2.5 text-dim" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" aria-label={`Search ${spec.picker.toLowerCase()}`} className={`${field} w-full pl-7`} />
           </div>
-          <ul className="max-h-[200px] overflow-auto rounded-md border border-line bg-bg">
+          <ul className="max-h-[250px] overflow-auto rounded-md border border-line bg-bg">
             {rows.length === 0 && <li className="px-3 py-3 text-center text-dim">{res.items.length ? "No matches" : "Nothing found. Add one by id below."}</li>}
             {rows.map((r) => (
               <li key={r.id}>
@@ -246,14 +248,16 @@ function IntegrationCard({ kind }: { kind: Source }) {
     } catch (e) { setError(errText(e)); } finally { setBusy(false); }
   };
 
+  const credsReady = spec.fields.filter((f) => f.kind !== "target").every((f) => status.secrets[f.key]?.set);
   return (
-    <div className="space-y-3 rounded-lg border border-line p-4">
+    <div className="@container">
+      <div className="grid gap-5 @xl:grid-cols-[minmax(0,300px)_minmax(0,1fr)]">
+    <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <Icon name={spec.icon} size={14} className="text-dim" />
-        <h3 className="font-semibold">{spec.title}</h3>
+        <h3 className="label">Credentials</h3>
         {status.configured ? <Chip tone="ok"><Icon name="check" size={11} />connected</Chip> : <Chip tone="dim">not connected</Chip>}
       </div>
-      <form onSubmit={(e) => { e.preventDefault(); saveAndTest(); }} className="space-y-2">
+      <form onSubmit={(e) => { e.preventDefault(); saveAndTest(); }} className="space-y-3">
         {spec.fields.map((f) => {
           const id = `${ws}-${f.key}`;
           return f.kind === "secret" ? (
@@ -271,25 +275,53 @@ function IntegrationCard({ kind }: { kind: Source }) {
         </div>
       </form>
       <Help lines={spec.help} />
+    </div>
+    <div>
       {/* `configured` also needs a selection, so the picker opens as soon as the credentials are stored */}
-      {spec.fields.filter((f) => f.kind !== "target").every((f) => status.secrets[f.key]?.set) && <Picker kind={kind} reloadKey={reload} />}
+      {credsReady ? <Picker kind={kind} reloadKey={reload} /> : (
+        <div className="grid h-full min-h-[140px] place-items-center rounded-lg border border-dashed border-line px-4 text-center text-[12px] text-dim">
+          Save and test your credentials, then choose which {spec.picker.toLowerCase()} to ingest.
+        </div>
+      )}
+    </div>
+      </div>
     </div>
   );
 }
 
-/** Step 1: three credential cards, or for demo workspaces a note plus the demo catalog pickers. */
+const SOURCES: Source[] = ["github", "jira", "slack"];
+
+/** Step 1: one tab per source (credentials | picker). Demo workspaces show only the demo catalog pickers. */
 export function Sources() {
   const { info } = useData();
+  const [tab, setTab] = useState<Source>("github");
   if (!info) return null;
-  if (info.workspace.demo) {
-    return (
-      <div className="space-y-3">
-        <p className="flex items-center gap-2 text-ok"><Icon name="flask" size={14} />Demo data — no credentials needed</p>
-        {(["github", "jira", "slack"] as const).map((k) => <Picker key={k} kind={k} reloadKey={0} />)}
+  const demo = info.workspace.demo;
+  return (
+    <div>
+      <div role="tablist" aria-label="Sources" className="mb-4 flex gap-1 border-b border-line">
+        {SOURCES.map((k) => {
+          const on = tab === k;
+          const ok = demo || info.integrations[k].configured;
+          return (
+            <button key={k} type="button" role="tab" aria-selected={on} onClick={() => setTab(k)}
+              className={`-mb-px flex h-9 items-center gap-2 border-b-2 px-3 text-[13px] ${on ? "border-accent text-fg" : "border-transparent text-dim hover:text-mute"}`}>
+              <Icon name={SPEC[k].icon} size={13} />{SPEC[k].title}
+              <i aria-label={ok ? "connected" : "not connected"} className={`h-1.5 w-1.5 rounded-full ${ok ? "bg-ok" : "bg-line2"}`} />
+            </button>
+          );
+        })}
       </div>
-    );
-  }
-  return <div className="space-y-3">{(["github", "jira", "slack"] as const).map((k) => <IntegrationCard key={k} kind={k} />)}</div>;
+      <div role="tabpanel" aria-label={SPEC[tab].title}>
+        {demo ? (
+          <div className="space-y-3">
+            <p className="flex items-center gap-2 text-ok"><Icon name="flask" size={14} />Demo data: no credentials needed</p>
+            <Picker key={tab} kind={tab} reloadKey={0} />
+          </div>
+        ) : <IntegrationCard key={tab} kind={tab} />}
+      </div>
+    </div>
+  );
 }
 
 // ---------- AI model ----------
@@ -321,13 +353,11 @@ export function LlmCard() {
   };
 
   return (
-    <div className="space-y-3 rounded-lg border border-line p-4">
+    <div className="max-w-[420px] space-y-3">
       <div className="flex items-center gap-2">
-        <Icon name="spark" size={14} className="text-dim" />
-        <h3 className="font-semibold">AI model</h3>
         {st.configured ? <Chip tone="ok"><Icon name="check" size={11} />configured</Chip> : <Chip tone="dim">not configured</Chip>}
       </div>
-      <form onSubmit={(e) => { e.preventDefault(); saveAndTest(); }} className="space-y-2">
+      <form onSubmit={(e) => { e.preventDefault(); saveAndTest(); }} className="space-y-3">
         <Field label="Provider">
           <select value={provider} onChange={(e) => setDraft((d) => ({ ...d, llm_provider: e.target.value }))} className={`${field} font-sans`}>
             <option value="azure">Azure OpenAI</option>

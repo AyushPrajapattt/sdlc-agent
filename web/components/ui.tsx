@@ -13,9 +13,9 @@ export function Spinner() {
 /** Label above/beside an input; the input is wrapped so the label is programmatically associated. */
 export function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
   return (
-    <label className="flex items-center gap-2 text-[11.5px] text-dim">
-      <span className="w-[104px] shrink-0">{label}</span>
-      {children}
+    <label className="flex flex-col gap-1 text-[11.5px] text-dim">
+      <span>{label}</span>
+      <span className="flex">{children}</span>
       {hint && <span className="sr-only">{hint}</span>}
     </label>
   );

@@ -30,7 +30,7 @@ export default function SyncPanel() {
   const when = sync?.finished_at ? `${fmtDate(sync.finished_at)} ${fmtTime(sync.finished_at)} UTC` : "";
 
   return (
-    <div className="space-y-3 rounded-lg border border-line p-4">
+    <div className="space-y-4">
       <fieldset disabled={running || starting} className="flex flex-wrap items-center gap-x-5 gap-y-1">
         <legend className="sr-only">Ingestion mode</legend>
         {MODES.map((m) => (
@@ -58,28 +58,30 @@ export default function SyncPanel() {
         )}
         {sync?.error && <Notice tone="warn">{sync.error}</Notice>}
         {sync && sync.streams.length > 0 && (
+          <div className="max-h-[340px] overflow-auto rounded-lg border border-line">
           <table className="w-full text-[12px]">
             <caption className="sr-only">Ingestion streams</caption>
-            <thead>
+            <thead className="sticky top-0 bg-panel">
               <tr className="label text-left">
-                <th scope="col" className="py-1 pr-2 font-medium">Stream</th><th scope="col" className="px-2 font-medium">Status</th>
+                <th scope="col" className="py-1.5 pl-3 pr-2 font-medium">Stream</th><th scope="col" className="px-2 font-medium">Status</th>
                 <th scope="col" className="px-2 text-right font-medium">Pages</th><th scope="col" className="px-2 text-right font-medium">Fetched</th>
-                <th scope="col" className="px-2 text-right font-medium">Stored</th><th scope="col" className="pl-2 text-right font-medium">Errors</th>
+                <th scope="col" className="px-2 text-right font-medium">Stored</th><th scope="col" className="pl-2 pr-3 text-right font-medium">Errors</th>
               </tr>
             </thead>
             <tbody>
               {sync.streams.map((s) => (
                 <tr key={s.stream} className="border-t border-line align-top">
-                  <th scope="row" className="max-w-[200px] truncate py-1.5 pr-2 text-left font-mono text-[11.5px] font-normal">{s.stream}</th>
+                  <th scope="row" className="max-w-[200px] truncate py-1.5 pl-3 pr-2 text-left font-mono text-[11.5px] font-normal">{s.stream}</th>
                   <td className="px-2 py-1.5"><Chip tone={TONE[s.status]}>{s.status === "running" && <Spinner />}{s.status}</Chip></td>
                   <td className="px-2 py-1.5 text-right tabular-nums">{s.pages}</td>
                   <td className="px-2 py-1.5 text-right tabular-nums">{s.fetched}</td>
                   <td className="px-2 py-1.5 text-right tabular-nums">{s.persisted}</td>
-                  <td className="py-1.5 pl-2 text-right tabular-nums">{s.errors.length}</td>
+                  <td className="py-1.5 pl-2 pr-3 text-right tabular-nums">{s.errors.length}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
         )}
         {sync && sync.streams.some((s) => s.errors.length > 0) && (
           <ul className="space-y-0.5 text-[11.5px] text-warn">
