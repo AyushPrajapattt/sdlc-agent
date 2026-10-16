@@ -1,22 +1,19 @@
 """Environment, workspaces and per-workspace secrets, shared by ingest, agent and api.
 
-Layout (all under HOME/.hackfront, gitignored):
-  workspaces/<slug>/workspace.json   targets only: no secrets
-  workspaces/<slug>/secrets.json     API keys (write-only through the API; chmod 600 best effort)
-  workspaces/<slug>/investigations/  stored investigations
-  workspaces/<slug>/sync.json        last sync status
+Storage is pluggable (see state.py): HACKFRONT_STATE=file (default; HOME/.hackfront/workspaces/<slug>/...) or neo4j
+(stateless hosting; keys encrypted with HACKFRONT_SECRET_KEY). This module holds the validation and masking logic only.
 Environment variables (GITHUB_TOKEN, ...) remain a fallback for any secret not stored in the workspace.
-Security is deliberately minimal (local single-user tool): secrets are never returned by the API, only a masked hint.
+Security is deliberately minimal (single-user tool): secrets are never returned by the API, only a masked hint.
 """
 
 from __future__ import annotations
 
-import json
 import os
 import re
-import shutil
 from pathlib import Path
 from urllib.parse import urlsplit
+
+from . import state
 
 HOME = Path(os.environ.get("HACKFRONT_HOME", Path.cwd()))
 SLUG = re.compile(r"[a-z0-9][a-z0-9-]{0,39}")
@@ -124,7 +121,7 @@ def validate_workspace(data: dict) -> dict:
 def slugify(name: str) -> str:
     base = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")[:30] or "workspace"
     slug, n = base, 2
-    while workspace_dir(slug).exists():
+    while state.backend().exists(slug):
         slug, n = f"{base}-{n}", n + 1
     return slug
 
@@ -135,48 +132,42 @@ def create_workspace(name: str, *, demo: bool = False, slug: str | None = None) 
     if not name:
         raise ValueError("workspace name is required")
     slug = check_slug(slug) if slug else slugify(name)
-    if workspace_dir(slug).exists():
+    if state.backend().exists(slug):
         raise ValueError("workspace already exists")
-    workspace_dir(slug).mkdir(parents=True)
     save_workspace(slug, {**EMPTY_WORKSPACE, "name": name, "demo": demo})
     return slug
 
 
 def list_workspaces() -> list[dict]:
-    root = workspaces_dir()
     out = []
-    for path in sorted(root.iterdir()) if root.is_dir() else []:
-        if path.is_dir() and SLUG.fullmatch(path.name) and (path / "workspace.json").exists():
-            try:
-                ws = load_workspace(path.name)
-            except (ValueError, LookupError):  # a corrupt file must not hide the other workspaces
-                out.append({"slug": path.name, "name": path.name, "demo": False})
-                continue
-            out.append({"slug": path.name, "name": ws["name"] or path.name, "demo": ws["demo"]})
+    for slug in state.backend().slugs():
+        try:
+            ws = load_workspace(slug)
+        except (ValueError, LookupError):  # a corrupt record must not hide the other workspaces
+            out.append({"slug": slug, "name": slug, "demo": False})
+            continue
+        out.append({"slug": slug, "name": ws["name"] or slug, "demo": ws["demo"]})
     return out
 
 
 def delete_workspace(slug: str) -> None:
-    """Remove config, secrets and stored investigations. Graph data is left in Neo4j (it is shared source evidence)."""
-    if not workspace_dir(slug).exists():
+    """Remove config, keys, stored investigations and sync status. Graph data is left in Neo4j (shared source evidence)."""
+    check_slug(slug)
+    if not state.backend().exists(slug):
         raise LookupError("workspace not found")
-    shutil.rmtree(workspace_dir(slug))
+    state.backend().delete(slug)
 
 
 def load_workspace(slug: str) -> dict:
-    path = workspace_dir(slug) / "workspace.json"
-    if not path.exists():
+    raw = state.backend().read_workspace(check_slug(slug))
+    if raw is None:
         raise LookupError("workspace not found")
-    return validate_workspace(json.loads(path.read_text(encoding="utf-8")))
+    return validate_workspace(raw)
 
 
 def save_workspace(slug: str, data: dict) -> dict:
     clean = validate_workspace(data)
-    directory = workspace_dir(slug)
-    directory.mkdir(parents=True, exist_ok=True)
-    tmp = directory / "workspace.json.tmp"
-    tmp.write_text(json.dumps(clean, indent=2), encoding="utf-8")
-    os.replace(tmp, directory / "workspace.json")
+    state.backend().write_workspace(check_slug(slug), clean)
     return clean
 
 
@@ -198,17 +189,8 @@ def names(slug: str) -> dict:
 
 
 # ---------------------------------------------------------------- secrets
-def _secrets_path(slug: str) -> Path:
-    return workspace_dir(slug) / "secrets.json"
-
-
 def _stored(slug: str) -> dict:
-    path = _secrets_path(slug)
-    try:
-        data = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
-    except ValueError:
-        data = {}
-    return data if isinstance(data, dict) else {}
+    return state.backend().read_secrets(check_slug(slug))
 
 
 def get_secret(slug: str, key: str) -> str | None:
@@ -228,7 +210,7 @@ def set_secrets(slug: str, values: dict) -> None:
         raise ValueError(f"unknown setting: {sorted(unknown)[0]}")
     if not all(isinstance(v, str) and len(v) <= 2000 and "\n" not in v and "\r" not in v for v in values.values()):
         raise ValueError("settings must be single-line strings")
-    if not workspace_dir(slug).exists():
+    if not state.backend().exists(check_slug(slug)):
         raise LookupError("workspace not found")
     data = _stored(slug)
     for key, value in values.items():
@@ -237,14 +219,7 @@ def set_secrets(slug: str, values: dict) -> None:
             data[key] = value
         else:
             data.pop(key, None)
-    path = _secrets_path(slug)
-    tmp = path.with_suffix(".tmp")
-    tmp.write_text(json.dumps(data, indent=2), encoding="utf-8")
-    try:
-        os.chmod(tmp, 0o600)  # best effort (no-op semantics on Windows)
-    except OSError:
-        pass
-    os.replace(tmp, path)
+    state.backend().write_secrets(slug, data)
 
 
 def secret_status(slug: str) -> dict:

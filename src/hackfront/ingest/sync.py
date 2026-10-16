@@ -16,6 +16,7 @@ import time
 from datetime import datetime, timezone
 
 from .. import config
+from .. import state as app_state
 from .core import run_ingestion
 from .extraction.links import LinkConfig, add_text_references
 from .sources.github.adapter import GitHubAdapter
@@ -86,12 +87,9 @@ class _Job:
             if not force and time.monotonic() - self._saved < 0.5:
                 return
             self._saved = time.monotonic()
-            path = config.workspace_dir(self.slug) / "sync.json"
             try:
-                tmp = path.with_suffix(".tmp")
-                tmp.write_text(json.dumps(self.snapshot()), encoding="utf-8")
-                os.replace(tmp, path)
-            except OSError:  # workspace deleted mid-run: live status still works
+                app_state.backend().write_sync(self.slug, self.snapshot())
+            except Exception:  # workspace deleted mid-run or state store briefly unavailable: live status still works
                 pass
 
     def stream(self, name: str, status: str = "running") -> dict:
@@ -301,8 +299,8 @@ def sync_status(slug: str) -> dict:
     if job:
         return job.snapshot()
     try:
-        status = json.loads((config.workspace_dir(slug) / "sync.json").read_text(encoding="utf-8"))
-    except (OSError, ValueError):
+        status = app_state.backend().read_sync(slug)
+    except Exception:  # state store unavailable: report idle rather than fail the poll
         return _idle()
     if not isinstance(status, dict) or not isinstance(status.get("streams"), list):
         return _idle()

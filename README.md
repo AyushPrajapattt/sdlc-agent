@@ -51,7 +51,7 @@ Demo questions: *Why are gateway retries capped at 3?* · *Why is the session TT
 
 ## Deploy
 
-UI on Vercel, API in a container with a disk, database on Neo4j Aura: see [docs/deploy.md](docs/deploy.md) (`Dockerfile` + `render.yaml` are ready; set `HACKFRONT_ACCESS_TOKEN` on the API and `HACKFRONT_API` / `HACKFRONT_API_TOKEN` on Vercel).
+Free hosting: UI on Vercel, API in a disk-less container (Render free plan blueprint included), everything stateful in Neo4j Aura: see [docs/deploy.md](docs/deploy.md). Workspaces, saved keys (encrypted with `HACKFRONT_SECRET_KEY`), investigations and sync status live in Neo4j when `HACKFRONT_STATE=neo4j` (local default stays files); `uv run hackfront migrate-state` copies existing local workspaces across.
 
 ## Test
 

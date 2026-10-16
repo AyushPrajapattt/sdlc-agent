@@ -11,7 +11,7 @@ from typing import Literal
 from fastapi import APIRouter, Body, HTTPException
 from pydantic import BaseModel
 
-from .. import config
+from .. import config, state
 from ..ingest.sources.github.client import GitHubClient
 from ..ingest.sources.jira.client import JiraClient
 from ..ingest.sources.slack.client import SlackClient
@@ -86,9 +86,9 @@ def _client(slug: str, ws: dict, which: str):
 # ---------------------------------------------------------------- workspaces
 def _last_sync(slug: str):
     try:
-        data = json.loads((config.workspace_dir(slug) / "sync.json").read_text(encoding="utf-8"))
-        return {"state": data["state"], "finished_at": data.get("finished_at")}
-    except (OSError, ValueError, KeyError, TypeError):
+        data = state.backend().read_sync(slug)
+        return {"state": data["state"], "finished_at": data.get("finished_at")} if data else None
+    except Exception:  # noqa: BLE001  (missing/corrupt record or state store unavailable: just no "last sync")
         return None
 
 

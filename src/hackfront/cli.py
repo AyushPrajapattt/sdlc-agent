@@ -50,6 +50,8 @@ def main(argv: list[str] | None = None) -> int:
     ask.add_argument("--workspace", required=True)
     ask.add_argument("--mode", default="why", choices=["why", "debug", "change"])
     ask.add_argument("--provider", choices=["azure", "sarvam"])
+    migrate = sub.add_parser("migrate-state", help="copy local workspaces, saved keys and investigations into Neo4j")
+    migrate.add_argument("--overwrite", action="store_true", help="replace workspaces that already exist in Neo4j")
     serve = sub.add_parser("serve", help="start the API and web UI")
     serve.add_argument("--host", default="127.0.0.1")
     serve.add_argument("--port", type=int, default=8000)
@@ -65,6 +67,14 @@ def main(argv: list[str] | None = None) -> int:
             return _sync("demo", "standard")
         if args.cmd == "sync":
             return _sync(args.workspace, "deep" if args.deep else "standard")
+        if args.cmd == "migrate-state":
+            from . import state
+
+            result = state.migrate(state.FileState(), state.Neo4jState(), overwrite=args.overwrite)
+            _print(result)
+            if result["secrets_skipped"]:
+                print("note: saved keys were NOT copied; set HACKFRONT_SECRET_KEY and run again with --overwrite", file=sys.stderr)
+            return 0
         if args.cmd == "workspaces":
             for w in config.list_workspaces():
                 print(f"{w['slug']}\t{w['name']}{'\t(demo)' if w['demo'] else ''}")

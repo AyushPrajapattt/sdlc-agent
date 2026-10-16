@@ -155,42 +155,27 @@ def investigate(question: str, mode: str = "why", provider: str | None = None, m
         yield {"event": "investigation", "investigation": inv, "graph": graph}
 
 
-# --- persistence (per workspace: <workspace dir>/investigations/) -----------------------------
-
-def _dir(workspace: str):
-    from .. import config
-
-    return config.workspace_dir(workspace) / "investigations"
-
+# --- persistence (per workspace; backend chosen by HACKFRONT_STATE, see state.py) -------------
 
 def save(investigation: dict, graph: dict, workspace: str) -> None:
-    """Atomic write of {investigation, graph}; the graph snapshot keeps quotes verifiable if the graph changes."""
+    """Store {investigation, graph}; the graph snapshot keeps quotes verifiable if the graph changes."""
+    from .. import state
+
     iid = investigation["id"]
     if not ID_OK.fullmatch(iid):
         raise ValueError("invalid investigation id")
-    d = _dir(workspace)
-    d.mkdir(parents=True, exist_ok=True)
-    tmp = d / f".{iid}.{secrets.token_hex(4)}.tmp"
-    tmp.write_text(json.dumps({"investigation": investigation, "graph": graph}), encoding="utf-8")
-    os.replace(tmp, d / f"{iid}.json")
+    state.backend().put_investigation(workspace, iid, {"investigation": investigation, "graph": graph})
 
 
 def get(iid: str, workspace: str) -> dict | None:
+    from .. import state
+
     if not isinstance(iid, str) or not ID_OK.fullmatch(iid):
         return None
-    try:
-        return json.loads((_dir(workspace) / f"{iid}.json").read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return None
+    return state.backend().get_investigation(workspace, iid)
 
 
 def list_all(workspace: str, limit: int = 200) -> list[dict]:
-    # ponytail: reads whole files; add an index file if the folder grows past a few hundred
-    d, out = _dir(workspace), []
-    for p in sorted(d.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)[:limit] if d.exists() else []:
-        try:
-            i = json.loads(p.read_text(encoding="utf-8"))["investigation"]
-            out.append({k: i.get(k) for k in ("id", "question", "file", "line", "confidence", "created_at")})
-        except (OSError, ValueError, KeyError):
-            continue
-    return sorted(out, key=lambda r: r["created_at"] or "", reverse=True)
+    from .. import state
+
+    return state.backend().list_investigations(workspace, limit)

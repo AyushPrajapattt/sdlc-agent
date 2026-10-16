@@ -1,19 +1,20 @@
 # Render Blueprint: New > Blueprint > pick this repo. Fill the three NEO4J_* values when asked.
-# The disk keeps workspaces, saved keys and investigations across deploys (a disk needs a paid instance).
+# Free plan, no disk: all state lives in Neo4j (HACKFRONT_STATE=neo4j). A free instance sleeps after 15 idle minutes
+# (about a minute to wake) and keeps nothing locally, which is fine because nothing is stored locally.
 services:
   - type: web
     name: hackfront-api
     runtime: docker
-    plan: starter
+    plan: free
     healthCheckPath: /health
     numInstances: 1  # sync jobs are tracked in-process: keep exactly one instance
-    disk:
-      name: hackfront-data
-      mountPath: /data
-      sizeGB: 1
     envVars:
+      - key: HACKFRONT_STATE
+        value: neo4j
       - key: HACKFRONT_ACCESS_TOKEN
         generateValue: true  # copy it into Vercel as HACKFRONT_API_TOKEN
+      - key: HACKFRONT_SECRET_KEY
+        generateValue: true  # encrypts the API keys saved in the UI; keep it: a new value makes saved keys unreadable
       - key: NEO4J_URI
         sync: false
       - key: NEO4J_USERNAME
