@@ -1,0 +1,416 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Claim Processing Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: same drawing-sheet system as the Engineering Memory Blueprint; one sheet per concern (where it runs, triggers, stages, decisions, states, ledger, example, guarantees). */
+:root{
+  --paper:#f2f6fb; --grid:#dde7f2; --card:#ffffff; --ink:#13243b; --muted:#53657d; --line:#c6d4e5; --line-strong:#8ea4c0;
+  --ev:#1f5fbf; --ev-fill:#e2ecfb; --cl:#a66300; --cl-fill:#fcefd6; --no:#c0392b; --hl:#0f7a6c; --hl-fill:#dcf3ef;
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0d223d; --grid:#163357; --card:#112c4c; --ink:#e7eef8; --muted:#a3b7cf; --line:#284a72; --line-strong:#4f74a0;
+  --ev:#86b6ff; --ev-fill:#163a66; --cl:#f3b65c; --cl-fill:#3b2e16; --no:#ff7c6d; --hl:#5fd3c0; --hl-fill:#123f44; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0d223d; --grid:#163357; --card:#112c4c; --ink:#e7eef8; --muted:#a3b7cf; --line:#284a72; --line-strong:#4f74a0;
+  --ev:#86b6ff; --ev-fill:#163a66; --cl:#f3b65c; --cl-fill:#3b2e16; --no:#ff7c6d; --hl:#5fd3c0; --hl-fill:#123f44; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background-color:var(--paper);color:var(--ink);font:16px/1.6 var(--f-body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;padding-inline:16px;padding-block:28px 64px}
+.sheet{max-width:1000px;margin:0 auto;display:grid;gap:28px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.1}
+h1{font-size:clamp(2.3rem,6vw,3.6rem);font-weight:700}
+h2{font-size:clamp(1.7rem,4vw,2.2rem);font-weight:700}
+h3{font-size:1.3rem;font-weight:600}
+p{margin:0;max-width:70ch}
+.lede{font-size:1.12rem;color:var(--muted)}
+.label{font-family:var(--f-display);font-weight:600;text-transform:uppercase;letter-spacing:.12em;font-size:.82rem;color:var(--muted)}
+code{font-family:var(--f-mono);font-size:.84em;background:var(--ev-fill);color:var(--ink);padding:1px 5px;border-radius:4px}
+
+.titleblock{background:var(--card);border:2px solid var(--ink);display:grid;grid-template-columns:1fr auto}
+.titleblock .main{padding:24px 26px;display:grid;gap:12px;min-width:0}
+.titleblock .side{border-left:2px solid var(--ink);display:grid;grid-auto-rows:1fr;min-width:210px}
+.titleblock .side div{border-bottom:1px solid var(--line-strong);padding:8px 14px;display:grid;align-content:center}
+.titleblock .side div:last-child{border-bottom:0}
+.titleblock .side b{font-family:var(--f-mono);font-weight:500;font-size:.86rem}
+@media(max-width:700px){.titleblock{grid-template-columns:1fr}.titleblock .side{border-left:0;border-top:2px solid var(--ink);grid-template-columns:1fr 1fr;min-width:0}}
+
+section.part{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:26px;display:grid;gap:18px}
+@media(max-width:600px){section.part{padding:18px}}
+.part-head{display:grid;gap:6px}
+.part-head .num{font-family:var(--f-mono);font-size:.8rem;color:var(--ev)}
+
+.legend{display:flex;flex-wrap:wrap;gap:18px;font-size:.92rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:30px;height:16px;border-radius:3px;display:inline-block}
+.sw.ev{background:var(--ev-fill);border:2px solid var(--ev)}
+.sw.cl{background:var(--cl-fill);border:2px dashed var(--cl)}
+.sw.hl{background:var(--hl-fill);border:2px solid var(--hl)}
+.sw.off{background:var(--card);border:2px dotted var(--muted)}
+
+figure{margin:0;display:grid;gap:10px}
+.dgwrap{overflow-x:auto;border:1px dashed var(--line-strong);border-radius:4px;padding:10px;background:var(--paper)}
+svg.dg{display:block;width:100%;min-width:700px;height:auto}
+figcaption{font-size:.92rem;color:var(--muted);max-width:78ch}
+.dg text{fill:var(--ink);font-family:var(--f-body);font-size:13px}
+.dg .t-b{font-weight:700;font-size:13.5px}
+.dg .t-m{fill:var(--muted);font-size:11.5px}
+.dg .t-k{fill:var(--ev);font-family:var(--f-mono);font-size:11px;font-weight:500}
+.dg .t-cl{fill:var(--cl)} .dg .t-no{fill:var(--no);font-weight:700} .dg .t-hl{fill:var(--hl);font-weight:700}
+.dg .t-head{font-family:var(--f-display);font-weight:600;font-size:13px;letter-spacing:.1em;fill:var(--muted)}
+.dg .b-ev{fill:var(--ev-fill);stroke:var(--ev);stroke-width:1.6}
+.dg .b-cl{fill:var(--cl-fill);stroke:var(--cl);stroke-width:1.6;stroke-dasharray:6 4}
+.dg .b-n{fill:var(--card);stroke:var(--line-strong);stroke-width:1.4}
+.dg .b-hl{fill:var(--hl-fill);stroke:var(--hl);stroke-width:1.8}
+.dg .b-off{fill:var(--card);stroke:var(--muted);stroke-width:1.4;stroke-dasharray:2 3}
+.dg .b-term{fill:var(--card);stroke:var(--ink);stroke-width:3}
+.dg .b-box{fill:none;stroke:var(--hl);stroke-width:1.4;stroke-dasharray:8 5}
+.dg .ln{stroke:var(--ink);stroke-width:1.5;fill:none}
+.dg .ln-m{stroke:var(--muted);stroke-width:1.3;fill:none;stroke-dasharray:4 4}
+.dg .ln-hl{stroke:var(--hl);stroke-width:1.8;fill:none}
+.dg .ln-ev{stroke:var(--ev);stroke-width:1.5;fill:none;stroke-dasharray:5 4}
+.dg .ah{fill:var(--ink)} .dg .ah-hl{fill:var(--hl)} .dg .ah-ev{fill:var(--ev)} .dg .ah-m{fill:var(--muted)}
+
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.92rem;min-width:720px}
+th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+th{font-family:var(--f-display);font-weight:600;font-size:1rem;letter-spacing:.03em;background:var(--paper)}
+td.k{font-family:var(--f-mono);font-size:.82rem;white-space:nowrap}
+.pill{display:inline-block;font-family:var(--f-mono);font-size:.74rem;padding:1px 8px;border-radius:99px;border:1px solid var(--line-strong);white-space:nowrap}
+.pill.rt{border-color:var(--hl);color:var(--hl)} .pill.batch{border-color:var(--cl);color:var(--cl)} .pill.later{border-color:var(--muted);color:var(--muted)}
+
+ol.steps{list-style:none;margin:0;padding:0;display:grid;counter-reset:s}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:48px 1fr;gap:14px;padding:14px 0;border-bottom:1px dashed var(--line)}
+ol.steps li:last-child{border-bottom:0}
+ol.steps li .badge{font-family:var(--f-display);font-weight:700;font-size:1.25rem;width:44px;height:44px;border:2px solid var(--ink);border-radius:50%;display:grid;place-items:center}
+ol.steps li::before{display:none}
+ol.steps li > div{min-width:0;display:grid;gap:4px}
+.io{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.io b{color:var(--ink);font-weight:700}
+
+pre.code{font-family:var(--f-mono);font-size:.82rem;background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:14px;overflow-x:auto;white-space:pre;line-height:1.55;margin:0}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.cols>div{min-width:0;display:grid;gap:10px;align-content:start}
+@media(max-width:760px){.cols{grid-template-columns:1fr}}
+ul.tight{margin:0;padding-left:20px;display:grid;gap:5px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid3>div{border:1px solid var(--line);border-radius:4px;padding:12px 14px;display:grid;gap:4px;min-width:0;align-content:start}
+.grid3 b{font-family:var(--f-display);font-size:1.1rem;font-weight:600}
+@media(max-width:760px){.grid3{grid-template-columns:1fr}}
+.note{border-left:3px solid var(--hl);padding:4px 0 4px 14px}
+footer{font-size:.86rem;color:var(--muted)}
+</style>
+
+<div class="sheet">
+
+<header class="titleblock">
+  <div class="main">
+    <span class="label">System design · hackfront · Phase 02</span>
+    <h1>Claim Processing Engine</h1>
+    <p class="lede">When the engine runs, what wakes it up, the stages a claim passes through, and the events it records each time a belief is created, revised or withdrawn. It builds on ADR-002 and leaves the Phase 01 ingestion code untouched.</p>
+  </div>
+  <div class="side">
+    <div><span class="label">Status</span><b>Proposed design</b></div>
+    <div><span class="label">Date</span><b>2026-10-11</b></div>
+    <div><span class="label">Implements</span><b>FR-9..15 · NFR-6,7</b></div>
+    <div><span class="label">Plan tasks</span><b>CLM-1..4 · LRN-1</b></div>
+  </div>
+</header>
+
+<section class="part">
+  <div class="part-head"><span class="num">00 · IN ONE PARAGRAPH</span><h2>A batch job that turns new evidence into versioned beliefs</h2></div>
+  <p>The engine is a <b>separate, bounded run</b>, the same pattern as ingestion. Something triggers it (new evidence, a rule change, a human correction, a nightly sweep). It works out which claims could be affected, derives or proposes candidate claims, validates them, and compares each one with the current belief. It then writes one of six outcomes: publish, no-op, supersede, dispute, reject or retract. Every write is a new claim version plus a ledger event explaining why. It <b>reads</b> the evidence graph but never writes to it, and it remembers how far it got with a <b>watermark</b>, so a crashed run simply resumes.</p>
+  <div class="grid3">
+    <div><b>Explicit claims: right away</b><span>Deterministic rules run on every incremental pass. They are cheap and repeatable.</span></div>
+    <div><b>Inferred claims: in batches</b><span>The model-based proposer runs in the nightly sweep or on request, and only once ADR-002’s policy is accepted.</span></div>
+    <div><b>Corrections: on demand</b><span>A reviewer’s confirm, dispute or retract runs through the same validate-and-commit path for one claim.</span></div>
+  </div>
+</section>
+
+<section class="part">
+  <div class="part-head"><span class="num">01 · ARCHITECTURE</span><h2>Where the engine sits</h2>
+  <p>Seven triggers on the left feed one engine in the middle. The stores on the right show what the engine reads, what it writes and who consumes the result.</p></div>
+  <div class="legend"><span><i class="sw ev"></i>Evidence (read-only for the engine)</span><span><i class="sw cl"></i>Claims and semantic steps</span><span><i class="sw hl"></i>Engine-owned state</span><span><i class="sw off"></i>Off by default or later phase</span></div>
+  <figure>
+    <div class="dgwrap">
+    <svg class="dg" viewBox="0 0 900 470" role="img" aria-label="Seven triggers feed the claim processing engine. The engine plans an impact set, derives explicit claims, optionally proposes semantic claims, validates, reconciles, commits and summarizes. It reads the evidence graph and writes claim versions, ledger events and a watermark. Retrieval and the agent read published claims.">
+      <defs>
+        <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0 0 L10 5 L0 10 z"/></marker>
+        <marker id="a1h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-hl" d="M0 0 L10 5 L0 10 z"/></marker>
+        <marker id="a1e" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-ev" d="M0 0 L10 5 L0 10 z"/></marker>
+        <marker id="a1m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-m" d="M0 0 L10 5 L0 10 z"/></marker>
+      </defs>
+      <text class="t-head" x="16" y="16">TRIGGERS</text><text class="t-head" x="252" y="16">CLAIM PROCESSING ENGINE · ONE RUN AT A TIME</text><text class="t-head" x="744" y="16">STORES &amp; CONSUMERS</text>
+      <!-- triggers: y = 30 + i*58, h 46 -->
+      <rect class="b-ev" x="16" y="30" width="196" height="46" rx="6"/><text class="t-k" x="28" y="49">T1</text><text class="t-b" x="52" y="49">Ingestion run finished</text><text class="t-m" x="52" y="66">new / changed artifacts</text>
+      <rect class="b-n" x="16" y="88" width="196" height="46" rx="6"/><text class="t-k" x="28" y="107">T2</text><text class="t-b" x="52" y="107">Rule / registry bump</text><text class="t-m" x="52" y="124">new rule or registry version</text>
+      <rect class="b-off" x="16" y="146" width="196" height="46" rx="6"/><text class="t-k" x="28" y="165">T3</text><text class="t-b" x="52" y="165">Model / policy change</text><text class="t-m" x="52" y="182">proposer enabled or updated</text>
+      <rect class="b-n" x="16" y="204" width="196" height="46" rx="6"/><text class="t-k" x="28" y="223">T4</text><text class="t-b" x="52" y="223">Human correction</text><text class="t-m" x="52" y="240">confirm · dispute · retract</text>
+      <rect class="b-n" x="16" y="262" width="196" height="46" rx="6"/><text class="t-k" x="28" y="281">T5</text><text class="t-b" x="52" y="281">Scheduled sweep</text><text class="t-m" x="52" y="298">nightly re-evaluation</text>
+      <rect class="b-off" x="16" y="320" width="196" height="46" rx="6"/><text class="t-k" x="28" y="339">T6</text><text class="t-b" x="52" y="339">Benchmark failure</text><text class="t-m" x="52" y="356">Phase 04 evaluation</text>
+      <rect class="b-off" x="16" y="378" width="196" height="46" rx="6"/><text class="t-k" x="28" y="397">T7</text><text class="t-b" x="52" y="397">Agent hypothesis</text><text class="t-m" x="52" y="414">Phase 03 investigation</text>
+      <!-- converge into S0 -->
+      <g class="ln-m">
+        <path d="M212 53 H230 V100 H262" marker-end="url(#a1m)"/>
+        <path d="M212 111 H230"/><path d="M212 169 H230"/><path d="M212 227 H230"/><path d="M212 285 H230"/><path d="M212 343 H230"/><path d="M212 401 H230 V100"/>
+      </g>
+      <text class="t-m" x="236" y="160" transform="rotate(-90 236 160)" text-anchor="middle">trigger record</text>
+      <!-- engine container -->
+      <rect class="b-box" x="244" y="26" width="470" height="430" rx="10"/>
+      <rect class="b-hl" x="266" y="74" width="132" height="54" rx="6"/><text class="t-k" x="278" y="94">S0</text><text class="t-b" x="300" y="94">Plan</text><text class="t-m" x="278" y="114">impact set + watermark</text>
+      <rect class="b-n" x="430" y="44" width="160" height="50" rx="6"/><text class="t-k" x="442" y="64">S1</text><text class="t-b" x="464" y="64">Derive explicit</text><text class="t-m" x="442" y="82">registry rules over links</text>
+      <rect class="b-off" x="430" y="110" width="160" height="50" rx="6"/><text class="t-k" x="442" y="130">S2</text><text class="t-b t-cl" x="464" y="130">Propose semantic</text><text class="t-m" x="442" y="148">model, batch only</text>
+      <path class="ln" d="M398 92 H414 V69 H426" marker-end="url(#a1)"/>
+      <path class="ln" d="M414 92 V135 H426" marker-end="url(#a1)"/>
+      <rect class="b-n" x="430" y="190" width="160" height="50" rx="6"/><text class="t-k" x="442" y="210">S3</text><text class="t-b" x="464" y="210">Validate</text><text class="t-m" x="442" y="228">schema · evidence · time</text>
+      <path class="ln" d="M590 69 H612 V215 H594" marker-end="url(#a1)"/><path class="ln" d="M590 135 H612"/>
+      <text class="t-m" x="620" y="150">candidates</text>
+      <rect class="b-cl" x="430" y="262" width="160" height="50" rx="6"/><text class="t-k" x="442" y="282">S4</text><text class="t-b" x="464" y="282">Reconcile</text><text class="t-m" x="442" y="300">compare with current</text>
+      <rect class="b-hl" x="430" y="334" width="160" height="50" rx="6"/><text class="t-k" x="442" y="354">S5</text><text class="t-b" x="464" y="354">Commit</text><text class="t-m" x="442" y="372">1 transaction per claim</text>
+      <rect class="b-n" x="430" y="400" width="160" height="42" rx="6"/><text class="t-k" x="442" y="425">S6</text><text class="t-b" x="464" y="425">Summarize</text>
+      <line class="ln" x1="510" y1="240" x2="510" y2="258" marker-end="url(#a1)"/>
+      <line class="ln" x1="510" y1="312" x2="510" y2="330" marker-end="url(#a1)"/>
+      <line class="ln" x1="510" y1="384" x2="510" y2="396" marker-end="url(#a1)"/>
+      <text class="t-m" x="266" y="290">publish · no-op</text><text class="t-m" x="266" y="306">supersede · dispute</text><text class="t-m" x="266" y="322">reject · retract</text>
+      <line class="ln-m" x1="376" y1="300" x2="426" y2="292" marker-end="url(#a1m)"/>
+      <!-- stores -->
+      <rect class="b-n" x="744" y="30" width="146" height="40" rx="6"/><text class="t-b" x="756" y="55">Ingestion runner</text>
+      <line class="ln" x1="817" y1="70" x2="817" y2="84" marker-end="url(#a1)"/>
+      <rect class="b-ev" x="744" y="88" width="146" height="64" rx="6"/><text class="t-b" x="756" y="110">Evidence graph</text><text class="t-k" x="756" y="127">:Artifact :Actor</text><text class="t-no" x="756" y="144" style="font-size:11px">engine never writes</text>
+      <path class="ln-ev" d="M744 120 H640 V101 H402" marker-end="url(#a1e)"/><text class="t-m" x="648" y="114" style="fill:var(--ev)">reads</text>
+      <rect class="b-n" x="744" y="176" width="146" height="54" rx="6"/><text class="t-b" x="756" y="198">Retrieval · agent</text><text class="t-m" x="756" y="216">Phase 03 consumers</text>
+      <rect class="b-cl" x="744" y="252" width="146" height="58" rx="6"/><text class="t-b" x="756" y="274">Claim versions</text><text class="t-k" x="756" y="292">:Claim</text>
+      <line class="ln" x1="817" y1="252" x2="817" y2="234" marker-end="url(#a1)"/><text class="t-m" x="824" y="246">reads</text>
+      <rect class="b-hl" x="744" y="330" width="146" height="54" rx="6"/><text class="t-b" x="756" y="352">Claim ledger</text><text class="t-k" x="756" y="370">:ClaimEvent</text>
+      <rect class="b-hl" x="744" y="400" width="146" height="42" rx="6"/><text class="t-b" x="756" y="418">Watermark</text><text class="t-k" x="756" y="434">:EngineCursor</text>
+      <path class="ln-hl" d="M590 359 H700 V281 H740" marker-end="url(#a1h)"/>
+      <line class="ln-hl" x1="700" y1="357" x2="740" y2="357" marker-end="url(#a1h)"/>
+      <line class="ln-hl" x1="590" y1="421" x2="740" y2="421" marker-end="url(#a1h)"/>
+      <text class="t-hl" x="626" y="350" style="font-size:12px">writes</text>
+    </svg>
+    </div>
+    <figcaption>The engine’s only input from ingestion is the evidence graph plus a watermark: no queue, no shared code. Ingestion and claim processing are composed at the command line (<code>ingest … &amp;&amp; claims run</code>), and either can be re-run on its own.</figcaption>
+  </figure>
+</section>
+
+<section class="part">
+  <div class="part-head"><span class="num">02 · TRIGGER POINTS</span><h2>What wakes the engine, and how much it looks at</h2>
+  <p>Each trigger becomes a <b>trigger record</b> in the ledger, so every later change can say what caused it. The scope column is the impact set S0 builds.</p></div>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Trigger</th><th>Fires when</th><th>Scope (impact set)</th><th>Stages run</th><th>Timing</th></tr></thead>
+    <tbody>
+      <tr><td class="k">T1 EvidenceIngested</td><td>An ingestion run finishes with persisted artifacts newer than the watermark, or with changed payload checksums.</td><td>Touched artifacts + 1 hop over explicit edges + claims citing any of them</td><td>S0 S1 S3 S4 S5 S6. Inferred claims citing touched evidence are queued for T5.</td><td><span class="pill rt">after every ingest</span></td></tr>
+      <tr><td class="k">T2 RulesChanged</td><td>The relation registry or an explicit-claim rule gets a new version.</td><td>All artifacts matched by the changed predicate</td><td>S0 S1 S3 S4 S5 S6 (rebuild; unchanged outputs are no-ops)</td><td><span class="pill rt">on deploy</span></td></tr>
+      <tr><td class="k">T3 ProposerChanged</td><td>The semantic proposer is enabled, or its model or prompt version changes.</td><td>Configured subjects (for example merged PRs) in a bounded batch</td><td>S0 S2 S3 S4 S5 S6</td><td><span class="pill batch">batch</span></td></tr>
+      <tr><td class="k">T4 HumanCorrection</td><td>A reviewer confirms, disputes or retracts a claim, with a reason.</td><td>One claim key</td><td>S3 S4 S5 S6 (correction treated as a candidate)</td><td><span class="pill rt">on demand</span></td></tr>
+      <tr><td class="k">T5 ScheduledSweep</td><td>A nightly schedule fires.</td><td>Queued re-evaluations, stale inferred claims, claims whose evidence was edited or deleted at the source</td><td>S0 S2 S3 S4 S5 S6</td><td><span class="pill batch">nightly</span></td></tr>
+      <tr><td class="k">T6 BenchmarkFailure</td><td>A Phase 04 case shows a claim is wrong or missing.</td><td>Claims cited by the failing answer</td><td>Opens a review item. A human turns it into T4 (no automatic edits).</td><td><span class="pill later">Phase 04</span></td></tr>
+      <tr><td class="k">T7 AgentHypothesis</td><td>The Phase 03 agent forms a hypothesis worth keeping.</td><td>One candidate</td><td>S3 S4 S5 S6 (always <code>inferred</code>, never auto-promoted)</td><td><span class="pill later">Phase 03</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">Why split real-time and batch: explicit claims are deterministic and cheap, so they keep pace with ingestion. Model-based proposals cost money and may involve sensitive text, so they run in controlled batches where they can be capped, reviewed and switched off.</p>
+</section>
+
+<section class="part">
+  <div class="part-head"><span class="num">03 · STAGES</span><h2>The pipeline, step by step</h2>
+  <p>Each stage has one job, clear inputs and outputs, and never writes to the evidence graph.</p></div>
+  <ol class="steps">
+    <li><span class="badge">S0</span><div><b>Plan: work out what could be affected</b><p>Read the watermark and the trigger. Collect the touched artifacts, their one-hop explicit neighbours, and every current claim that cites them. Cap the set at <code>max_items</code>, just as ingestion caps <code>max_pages</code>.</p><div class="io"><span><b>In:</b> trigger, watermark</span><span><b>Out:</b> impact set (artifact IDs, claim keys)</span></div></div></li>
+    <li><span class="badge">S1</span><div><b>Derive explicit claims</b><p>Apply the registry’s deterministic rules to explicit links. For example, a <code>REFERENCES</code> edge from PR #218 to SHOP-142 becomes <code>PR#218 addresses SHOP-142</code> with status <code>explicit</code>, citing the reference locator.</p><div class="io"><span><b>In:</b> impact set, registry vN</span><span><b>Out:</b> explicit candidates + rule version</span></div></div></li>
+    <li><span class="badge">S2</span><div><b>Propose semantic claims (optional)</b><p>Only in batch triggers, and only when enabled. Send the bounded evidence for a subject to the model behind the proposer interface; an offline stub is used in tests. Keep only answers that name a registered predicate and cite evidence IDs from the input.</p><div class="io"><span><b>In:</b> evidence bundle</span><span><b>Out:</b> <code>inferred</code> candidates + model and prompt version + confidence</span></div></div></li>
+    <li><span class="badge">S3</span><div><b>Validate</b><p>Check each candidate:</p><ul class="tight"><li>the predicate is registered and its endpoints are allowed;</li><li>every cited evidence ID exists in the graph;</li><li>the predicate’s evidence minimum is met;</li><li><code>valid_from</code> is not earlier than the evidence it rests on;</li><li>it does not conflict with a current claim.</li></ul><p>Failures carry a reason code.</p><div class="io"><span><b>In:</b> candidates</span><span><b>Out:</b> valid candidates, rejected candidates with reason, conflict flags</span></div></div></li>
+    <li><span class="badge">S4</span><div><b>Reconcile with the current belief</b><p>Look up the current version for the same <b>claim key</b> and choose one of six outcomes using the decision table below. This is the only stage that decides what changes.</p><div class="io"><span><b>In:</b> valid candidates, current versions</span><span><b>Out:</b> list of write intents</span></div></div></li>
+    <li><span class="badge">S5</span><div><b>Commit</b><p>Use one Neo4j transaction per claim key:</p><ul class="tight"><li>set <code>superseded_at</code> on the old version;</li><li>create the new <code>:Claim</code> version with its <code>SUBJECT</code>, <code>OBJECT</code> and <code>CITES</code> edges;</li><li>append the <code>:ClaimEvent</code>.</li></ul><p>Either all of it lands or none of it does.</p><div class="io"><span><b>In:</b> write intents</span><span><b>Out:</b> new versions + ledger events</span></div></div></li>
+    <li><span class="badge">S6</span><div><b>Summarize and advance</b><p>Move the watermark only past work that committed. Emit a run summary with counts per outcome, versions used, errors and a resume point, in the same shape as the ingestion <code>RunSummary</code>.</p><div class="io"><span><b>In:</b> commit results</span><span><b>Out:</b> watermark, claim run summary</span></div></div></li>
+  </ol>
+</section>
+
+<section class="part">
+  <div class="part-head"><span class="num">04 · DECISIONS</span><h2>How S4 picks one of six outcomes</h2>
+  <p>A claim key identifies the question a claim answers. For single-valued predicates, such as “why was this PR made”, the key is <code>(subject, predicate)</code>. For multi-valued ones, such as “which issues does this PR address”, the object is part of the key too. The registry declares which kind each predicate is.</p></div>
+  <figure>
+    <div class="dgwrap">
+    <svg class="dg" viewBox="0 0 900 300" role="img" aria-label="Pipeline S0 to S3 feeds the reconcile decision, which fans out to six outcomes: publish, no-op, supersede, dispute, reject and retract. All outcomes except no-op are committed in S5.">
+      <defs><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0 0 L10 5 L0 10 z"/></marker>
+      <marker id="a2m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-m" d="M0 0 L10 5 L0 10 z"/></marker></defs>
+      <rect class="b-hl" x="16" y="30" width="140" height="52" rx="6"/><text class="t-b" x="86" y="52" text-anchor="middle">S0 Plan</text><text class="t-m" x="86" y="70" text-anchor="middle">impact set</text>
+      <rect class="b-n" x="190" y="30" width="140" height="52" rx="6"/><text class="t-b" x="260" y="52" text-anchor="middle">S1 Explicit</text><text class="t-m" x="260" y="70" text-anchor="middle">rules</text>
+      <rect class="b-off" x="364" y="30" width="140" height="52" rx="6"/><text class="t-b t-cl" x="434" y="52" text-anchor="middle">S2 Semantic</text><text class="t-m" x="434" y="70" text-anchor="middle">skipped if off</text>
+      <rect class="b-n" x="538" y="30" width="140" height="52" rx="6"/><text class="t-b" x="608" y="52" text-anchor="middle">S3 Validate</text><text class="t-m" x="608" y="70" text-anchor="middle">pass / fail</text>
+      <line class="ln" x1="156" y1="56" x2="186" y2="56" marker-end="url(#a2)"/><line class="ln" x1="330" y1="56" x2="360" y2="56" marker-end="url(#a2)"/><line class="ln" x1="504" y1="56" x2="534" y2="56" marker-end="url(#a2)"/>
+      <line class="ln" x1="678" y1="56" x2="728" y2="56" marker-end="url(#a2)"/>
+      <polygon class="b-cl" points="780,22 832,56 780,90 728,56"/><text class="t-b" x="780" y="54" text-anchor="middle">S4</text><text class="t-m" x="780" y="69" text-anchor="middle">reconcile</text>
+      <path class="ln" d="M780 90 V120 H85 V150"/><path class="ln" d="M231 120 V150"/><path class="ln" d="M377 120 V150"/><path class="ln" d="M523 120 V150"/><path class="ln" d="M669 120 V150"/><path class="ln" d="M815 120 V150"/>
+      <g>
+        <rect class="b-cl" x="16" y="152" width="138" height="66" rx="6"/><text class="t-b" x="28" y="174">Publish</text><text class="t-m" x="28" y="192">no current version</text><text class="t-m" x="28" y="208">for this key</text>
+        <rect class="b-off" x="162" y="152" width="138" height="66" rx="6"/><text class="t-b" x="174" y="174">No-op</text><text class="t-m" x="174" y="192">same content hash</text><text class="t-m" x="174" y="208">(replay, rebuild)</text>
+        <rect class="b-cl" x="308" y="152" width="138" height="66" rx="6"/><text class="t-b" x="320" y="174">Supersede</text><text class="t-m" x="320" y="192">different content,</text><text class="t-m" x="320" y="208">equal or stronger</text>
+        <rect class="b-cl" x="454" y="152" width="138" height="66" rx="6"/><text class="t-b" x="466" y="174">Dispute</text><text class="t-m" x="466" y="192">conflicts, evidence</text><text class="t-m" x="466" y="208">too close to call</text>
+        <rect class="b-n" x="600" y="152" width="138" height="66" rx="6"/><text class="t-b" x="612" y="174">Reject</text><text class="t-m" x="612" y="192">failed S3; kept</text><text class="t-m" x="612" y="208">for audit only</text>
+        <rect class="b-n" x="746" y="152" width="138" height="66" rx="6"/><text class="t-b" x="758" y="174">Retract</text><text class="t-m" x="758" y="192">cited evidence gone</text><text class="t-m" x="758" y="208">or reviewer retracts</text>
+      </g>
+      <path class="ln" d="M85 218 V250"/><path class="ln" d="M377 218 V250"/><path class="ln" d="M523 218 V250"/><path class="ln" d="M669 218 V250"/><path class="ln" d="M815 218 V250"/>
+      <path class="ln-m" d="M231 218 V236"/><text class="t-m" x="238" y="236">writes nothing</text>
+      <rect class="b-hl" x="16" y="250" width="868" height="36" rx="6"/><text class="t-b" x="450" y="273" text-anchor="middle">S5 Commit · new :Claim version + :ClaimEvent in one transaction per claim key</text>
+    </svg>
+    </div>
+    <figcaption>“Stronger” is defined by the registry for each predicate: more independent sources, a higher evidence tier (benchmark or test result over PR prose), or human review. When the engine cannot rank two candidates it does not guess; it marks the claim disputed and leaves it for review.</figcaption>
+  </figure>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Outcome</th><th>Condition</th><th>What is written</th><th>Ledger event</th></tr></thead>
+    <tbody>
+      <tr><td><b>Publish</b></td><td>Valid, and no current version for the claim key</td><td>Version 1, <code>recorded_at = now</code></td><td class="k">ClaimPublished</td></tr>
+      <tr><td><b>No-op</b></td><td>Valid, and its content hash equals the current version’s</td><td>Nothing. The run summary counts it.</td><td class="k">none</td></tr>
+      <tr><td><b>Supersede</b></td><td>Same key, different content, and the new evidence is equal or stronger</td><td>Old version gets <code>superseded_at = now</code>. New version links <code>SUPERSEDES</code> to the old one.</td><td class="k">ClaimSuperseded</td></tr>
+      <tr><td><b>Dispute</b></td><td>Conflicts with a current claim, and neither can be ranked above the other</td><td>New versions of both claims with status <code>disputed</code>, linked by <code>CONTRADICTS</code></td><td class="k">ClaimDisputed</td></tr>
+      <tr><td><b>Reject</b></td><td>Failed validation in S3</td><td>A <code>:Claim</code> in lifecycle state <code>rejected</code> with a reason code. Excluded from default retrieval.</td><td class="k">ClaimRejected</td></tr>
+      <tr><td><b>Retract</b></td><td>All cited evidence has been deleted at the source, or a reviewer retracts the claim</td><td>A new version with status <code>retracted</code>. The previous version is superseded.</td><td class="k">ClaimRetracted</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="part">
+  <div class="part-head"><span class="num">05 · STATES</span><h2>The life of one claim</h2>
+  <p>Lifecycle state (where the claim is in the process) is separate from epistemic status (explicit, inferred, disputed or retracted). Terminal states have a heavy border: once there, a claim only ever changes by a new version being added.</p></div>
+  <figure>
+    <div class="dgwrap">
+    <svg class="dg" viewBox="0 0 900 250" role="img" aria-label="Claim state machine: a candidate becomes published if valid or rejected if invalid. Published can become disputed and back, superseded or retracted. Disputed can become superseded or retracted.">
+      <defs><marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0 0 L10 5 L0 10 z"/></marker></defs>
+      <rect class="b-n" x="16" y="96" width="130" height="48" rx="24"/><text class="t-b" x="81" y="125" text-anchor="middle">candidate</text>
+      <rect class="b-cl" x="256" y="96" width="140" height="48" rx="24"/><text class="t-b" x="326" y="125" text-anchor="middle">published</text>
+      <rect class="b-cl" x="520" y="20" width="140" height="48" rx="24"/><text class="t-b" x="590" y="49" text-anchor="middle">disputed</text>
+      <rect class="b-term" x="744" y="96" width="140" height="48" rx="24"/><text class="t-b" x="814" y="125" text-anchor="middle">superseded</text>
+      <rect class="b-term" x="520" y="186" width="140" height="48" rx="24"/><text class="t-b" x="590" y="215" text-anchor="middle">retracted</text>
+      <rect class="b-term" x="256" y="186" width="140" height="48" rx="24"/><text class="t-b" x="326" y="215" text-anchor="middle">rejected</text>
+      <line class="ln" x1="146" y1="120" x2="252" y2="120" marker-end="url(#a3)"/><text class="t-m" x="199" y="112" text-anchor="middle">S3 valid</text>
+      <path class="ln" d="M81 144 V210 H252" marker-end="url(#a3)"/><text class="t-m" x="90" y="200">S3 invalid</text>
+      <line class="ln" x1="386" y1="104" x2="516" y2="52" marker-end="url(#a3)" marker-start="url(#a3)"/><text class="t-m" x="440" y="66" text-anchor="middle">conflict</text><text class="t-m" x="468" y="96" text-anchor="middle">resolved</text>
+      <line class="ln" x1="396" y1="120" x2="740" y2="120" marker-end="url(#a3)"/><text class="t-m" x="568" y="112" text-anchor="middle">newer version recorded</text>
+      <path class="ln" d="M660 44 H814 V92" marker-end="url(#a3)"/><text class="t-m" x="700" y="36">resolved by new version</text>
+      <path class="ln" d="M366 144 V170 H560 V182" marker-end="url(#a3)"/><text class="t-m" x="420" y="164">evidence gone / reviewer</text>
+      <line class="ln" x1="620" y1="68" x2="620" y2="182" marker-end="url(#a3)"/><text class="t-m" x="628" y="150">retracted</text>
+    </svg>
+    </div>
+    <figcaption>Superseded, retracted and rejected versions are never deleted. They stay queryable by transaction time, which is what lets the system answer “what did we believe on Oct 5?” and “what changed our mind?”.</figcaption>
+  </figure>
+</section>
+
+<section class="part">
+  <div class="part-head"><span class="num">06 · EVENTS</span><h2>The claim ledger</h2>
+  <p>Every change appends one immutable <code>:ClaimEvent</code>. The ledger is the audit trail and the source for “why did our belief change?” queries (FR-14).</p></div>
+  <div class="cols">
+    <div>
+      <span class="label">Event types</span>
+      <ul class="tight">
+        <li><code>TriggerReceived</code>: which trigger, scope and versions</li>
+        <li><code>ClaimPublished</code> · <code>ClaimSuperseded</code></li>
+        <li><code>ClaimDisputed</code> · <code>ClaimRetracted</code></li>
+        <li><code>ClaimRejected</code>: with reason code</li>
+        <li><code>ClaimConfirmed</code>: human review recorded on a new version</li>
+        <li><code>ReevaluationQueued</code>: picked up by the next sweep</li>
+        <li><code>RunCompleted</code>: counts, watermark, errors</li>
+      </ul>
+      <p>Every event names its <b>cause</b> (the trigger record and the evidence IDs) and its <b>actor</b> (a rule version, a model version or a named reviewer).</p>
+    </div>
+    <div>
+      <span class="label">Example event</span>
+<pre class="code">{
+  "type": "ClaimSuperseded",
+  "event_id": "evt_01J…",
+  "claim_key": "gh:acme:pr:218|motivated_by",
+  "from_version": "v1#9c41…",
+  "to_version":   "v2#e07a…",
+  "cause": {
+    "trigger": "T5 ScheduledSweep 2026-10-20",
+    "evidence": ["ci:bench:run:5512",
+                 "gh:acme:review:88123"]
+  },
+  "actor": "proposer model=stub-1 prompt=p3",
+  "reason": "stronger_evidence_tier",
+  "recorded_at": "2026-10-20T02:04:11Z"
+}</pre>
+    </div>
+  </div>
+</section>
+
+<section class="part">
+  <div class="part-head"><span class="num">07 · WORKED EXAMPLE</span><h2>PR #218 through every trigger</h2>
+  <p>The same teaching story as the blueprint page, now showing which trigger fired and which stages ran each time.</p></div>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>When</th><th>Trigger</th><th>What the engine did</th><th>Outcome · event</th></tr></thead>
+    <tbody>
+      <tr><td class="k">Sep 14 09:12</td><td>T1 ingest</td><td>PR #218 merged with “fixes SHOP-142”. S1 derives <code>PR#218 addresses SHOP-142</code> (explicit, valid from Sep 14).</td><td>Publish · <code>ClaimPublished</code></td></tr>
+      <tr><td class="k">Sep 14 09:40</td><td>T1 replay</td><td>The same batch is re-ingested after a network error. S4 finds an identical content hash.</td><td>No-op · counted only</td></tr>
+      <tr><td class="k">Oct 1 02:00</td><td>T3 proposer on</td><td>ADR-002 policy accepted. S2 proposes <code>motivated_by: reduce checkout latency</code> (inferred, 0.6), citing the PR text and SHOP-142.</td><td>Publish · <code>ClaimPublished</code> (belief v1)</td></tr>
+      <tr><td class="k">Oct 18 14:30</td><td>T1 ingest</td><td>A benchmark run linked to PR #218 arrives. The impact set includes v1, which is inferred, so the engine queues it for re-evaluation instead of calling the model mid-day.</td><td>Queued · <code>ReevaluationQueued</code></td></tr>
+      <tr><td class="k">Oct 20 02:04</td><td>T5 sweep</td><td>S2 proposes <code>motivated_by: fix race condition</code> (0.8), citing the benchmark and a review comment. Same key, stronger evidence tier.</td><td>Supersede · <code>ClaimSuperseded</code> (belief v2)</td></tr>
+      <tr><td class="k">Oct 22 11:15</td><td>T4 reviewer</td><td>A maintainer confirms v2. A new version records <code>reviewed_by</code>; its content is otherwise unchanged.</td><td>Confirm · <code>ClaimConfirmed</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">The two-day gap between the benchmark (Oct 18) and the revised belief (Oct 20) is deliberate. Model-based re-evaluation waits for the nightly batch, and the ledger shows exactly when and why the belief changed.</p>
+</section>
+
+<section class="part">
+  <div class="part-head"><span class="num">08 · GUARANTEES</span><h2>What holds even when things fail</h2></div>
+  <div class="grid3">
+    <div><b>Evidence untouched</b><span>The engine has no write path to <code>:Artifact</code> or <code>:Actor</code>. AC-8 snapshots the evidence graph before and after a run and compares them.</span></div>
+    <div><b>Idempotent</b><span>A content hash per version makes replays and rebuilds no-ops. Running a batch twice produces the same claims.</span></div>
+    <div><b>Crash-safe</b><span>The watermark moves only past committed work. After a crash, rerun and the engine resumes. Half-written claims cannot exist, because S5 uses one transaction per key.</span></div>
+    <div><b>Bounded</b><span><code>max_items</code> per run, one-hop impact sets, and model calls capped per batch. A partial run reports a resume point.</span></div>
+    <div><b>One writer</b><span>A single <code>:EngineLock</code> node allows one run at a time, which avoids two runs racing to supersede the same claim.</span></div>
+    <div><b>Explainable</b><span>Every version records the rule, registry or model version and the ledger event that caused it.</span></div>
+  </div>
+</section>
+
+<section class="part">
+  <div class="part-head"><span class="num">09 · TRADE-OFFS</span><h2>Choices made, and when to revisit them</h2></div>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Decision</th><th>Chosen</th><th>Rejected for now</th><th>Revisit when</th></tr></thead>
+    <tbody>
+      <tr><td>How the engine learns about new evidence</td><td>Pulls with a watermark over the evidence graph</td><td>An event queue or outbox (Kafka, Redis streams)</td><td>Several ingestion workers write at once, or near-real-time claims are needed</td></tr>
+      <tr><td>Process model</td><td>A separate CLI run composed after ingestion</td><td>Claim logic inside <code>run_ingestion</code></td><td>Never mix them. A long-running worker can wrap the same function later.</td></tr>
+      <tr><td>When the model runs</td><td>Batch only (T3, T5)</td><td>On every ingest</td><td>Model cost and privacy policy allow it and freshness matters</td></tr>
+      <tr><td>Transaction size</td><td>One per claim key</td><td>One per run</td><td>Cross-claim invariants appear that need atomic multi-key updates</td></tr>
+      <tr><td>Conflict handling</td><td>Rank by evidence tier, otherwise mark disputed</td><td>Highest confidence wins</td><td>Phase 04 shows the confidence values are calibrated</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="cols">
+    <div>
+      <span class="label">Open points to settle before CLM-3</span>
+      <ul class="tight">
+        <li>T1 needs to detect <i>changed</i> artifacts, not just new ones. Either the writer keeps a <code>last_changed_at</code> when the payload checksum changes, or S0 compares checksums.</li>
+        <li>The evidence tiers per predicate (benchmark &gt; review &gt; PR prose?) belong in the registry and need a decision.</li>
+        <li>The schedule and model-call cap for T5.</li>
+      </ul>
+    </div>
+    <div>
+      <span class="label">Maps onto the plan</span>
+      <ul class="tight">
+        <li><b>CLM-1</b>: <code>Claim</code>, <code>ClaimEvent</code>, registry with cardinality and evidence tiers</li>
+        <li><b>CLM-2</b>: claim writer, ledger, watermark, lock, as-of queries</li>
+        <li><b>CLM-3</b>: engine S0, S1, S3–S6 and triggers T1, T2, T4, T5</li>
+        <li><b>CLM-4</b>: S2 proposer and T3 (blocked until ADR-002 is accepted)</li>
+        <li><b>INV-2</b>: T7 · <b>LRN-1</b>: T6</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>Derived from SPEC.md rev 2 (FR-9..15, NFR-6, NFR-7, AC-6..9), ADR-002, and the existing <code>run_ingestion</code> / <code>Neo4jStore</code> code in hackfront. The PR #218 timeline is a teaching example. This is a proposed design; nothing here is implemented yet.</footer>
+</div>
+
+</body></html>
